@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1319">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Ton lecteur de fichiers musicaux local, sans compte ni publicité.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon.png">
+<link rel="icon" href="./icon.png">
+<title>Music local</title>
+<style>
+:root{color-scheme:dark;--bg:#0e1319;--panel:#1a222c;--muted:#9cabbc;--accent:#b7f5bd;--line:#2b3541;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f1f5f8}button,input{font:inherit}button{cursor:pointer;border:0}button:disabled{opacity:.4;cursor:default}button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}button{min-height:44px;color:inherit;background:var(--panel);border-radius:14px;padding:10px 15px}button.primary{background:var(--accent);color:#152c21;font-weight:750}main{max-width:820px;margin:auto;padding:calc(24px + env(safe-area-inset-top)) 22px calc(190px + env(safe-area-inset-bottom))}header{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-size:13px;font-weight:800;letter-spacing:.13em}.brand span{color:var(--accent)}.badge{font-size:11px;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:8px 10px}.eyebrow{color:var(--accent);font-size:12px;letter-spacing:.16em;font-weight:750;margin:0 0 13px}h1{font-size:clamp(34px,8vw,55px);line-height:1.06;letter-spacing:-.045em;margin:0 0 16px}.hero{margin:42px 0 28px}.hero p:not(.eyebrow){color:var(--muted);font-size:15px;line-height:1.6;max-width:440px}.tools{display:flex;gap:10px;align-items:center;margin:20px 0}#search{min-width:0;flex:1;background:var(--panel);border:1px solid var(--line);color:inherit;padding:13px;border-radius:14px}#favorites[aria-pressed=true]{background:var(--accent);color:#152c21}.library-head{display:flex;justify-content:space-between;align-items:center;margin:26px 0 12px}h2{font-size:19px;margin:0}#count{color:var(--muted);font-size:13px}.track{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid var(--line)}.track-main{display:flex;align-items:center;gap:13px;min-width:0;flex:1;text-align:left;background:transparent;padding:0}.art{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:49px;height:49px;border-radius:13px;background:linear-gradient(140deg,#3f686b,#1c304b);color:#c5f9d9;font-size:23px}.track:nth-child(3n+2) .art{background:linear-gradient(135deg,#655477,#26324b)}.track-text{min-width:0;display:grid;gap:5px}.track-text b{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:15px}.track-text small{color:var(--muted);font-size:12px}.track.active b{color:var(--accent)}.more{background:transparent;font-size:22px;width:44px;padding:0}.empty{padding:35px 18px;text-align:center;border:1px dashed var(--line);border-radius:20px;color:var(--muted);line-height:1.7}.empty strong{display:block;color:#eff5fa;font-size:17px}#notice{padding:12px 14px;background:#253428;border:1px solid #38533e;border-radius:14px;line-height:1.5;font-size:14px;margin:12px 0;white-space:pre-wrap}#notice.error{background:#392326;border-color:#704347}.storage{font-size:12px;color:var(--muted);line-height:1.6;margin-top:25px}details{border:1px solid var(--line);border-radius:14px;margin-top:20px;padding:14px;color:var(--muted);font-size:13px;line-height:1.65}summary{cursor:pointer;color:#e0e8ef}.mini{position:fixed;bottom:0;left:0;right:0;padding:12px 16px calc(15px + env(safe-area-inset-bottom));background:#18212cf5;border-top:1px solid var(--line);backdrop-filter:blur(20px)}.mini-inner{max-width:776px;margin:auto;display:flex;align-items:center;gap:10px}.mini-open{min-width:0;flex:1;text-align:left;background:transparent;display:grid;gap:5px;padding:4px}.mini-open b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.mini-open small{color:var(--muted);font-size:12px}.mini .primary{border-radius:50%;width:48px;padding:0}.progress{height:3px;background:#33414f;margin:11px auto 0;max-width:776px;border-radius:3px}.progress span{display:block;height:100%;background:var(--accent);width:0;max-width:100%}dialog{color:inherit;border:1px solid var(--line);border-radius:25px;background:var(--bg);padding:24px;width:min(440px,calc(100% - 24px));max-height:92dvh;overflow:auto}dialog::backdrop{background:#000b;backdrop-filter:blur(8px)}.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.cover{margin:28px auto;width:min(245px,65vw);aspect-ratio:1;display:grid;place-items:center;background:radial-gradient(ellipse at 20% 20%,#a0d9af,#2b6a66 50%,#19243f);border-radius:25px;box-shadow:0 15px 60px #0005;font-size:85px;color:#c7f9d5}.now-title{font-size:24px;overflow-wrap:anywhere;margin-top:20px}#now-artist{color:var(--muted);margin:7px 0 22px}input[type=range]{width:100%;accent-color:var(--accent);height:32px}.times{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}.transport{display:flex;justify-content:center;gap:18px;align-items:center;margin:23px 0}.transport button{font-size:23px}.transport .primary{font-size:23px;min-width:70px;height:66px}.modes{display:flex;gap:9px}.modes button{flex:1;font-size:13px}.modes button.on{background:#b7f5bd26;color:var(--accent)}.queue{margin-top:22px;display:grid;gap:5px}.queue button{text-align:left;font-size:13px}.queue button.active{color:var(--accent)}form label{display:grid;gap:7px;margin:20px 0;color:var(--muted);font-size:14px}form input{width:100%;background:var(--panel);color:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.danger{color:#ffb4b4}#import-progress{color:var(--muted);font-size:13px;margin:12px 0}a{color:var(--accent)}[hidden]{display:none!important}@media(prefers-reduced-motion:no-preference){button{transition:background .15s,transform .15s}button:active{transform:scale(.97)}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand"><span>◖</span> MUSIC LOCAL</div><span class="badge">SUR TON APPAREIL</span></header>
+<section class="hero"><p class="eyebrow">TA COLLECTION. TON RYTHME.</p><h1>Un espace pour<br>ta musique.</h1><p>Importe tes morceaux. Écoute-les ici.<br>Sans compte, sans publicité, sans envoi de fichiers.</p><button class="primary" id="import">＋ Importer des morceaux</button><input id="files" type="file" multiple accept=".mp3,.m4a,.wav,.mp4,audio/mpeg,audio/mp4,audio/wav,video/mp4" hidden><div id="import-progress" role="status"></div></section>
+<div id="notice" role="status" hidden></div>
+<div class="tools"><input id="search" type="search" placeholder="Rechercher un titre, un artiste…" aria-label="Rechercher dans la bibliothèque"><button id="favorites" aria-pressed="false" aria-label="Afficher les favoris">♡</button></div>
+<div class="library-head"><h2>Bibliothèque</h2><span id="count">0 titre</span></div>
+<div id="tracks"></div>
+<div class="storage"><span id="storage">Stockage local</span><br><span id="offline">Préparation du mode hors ligne…</span></div>
+<details><summary>Premier essai sur ton iPhone</summary><p>1. Ouvre cette page dans Safari, puis Partager → Sur l’écran d’accueil. Lance ensuite le lecteur depuis cette nouvelle icône.</p><p>2. Importe deux petits MP3 depuis Fichiers. Attends « Prêt hors ligne », puis lis le premier et verrouille l’écran jusqu’au suivant.</p><p>3. Ferme le lecteur, active le mode avion et rouvre-le depuis son icône. Vérifie que tes titres sont encore là et lisibles.</p><p>Garde tes originaux : effacer les données du site ou certaines contraintes de stockage peuvent supprimer cette copie locale. Safari et l’icône installée peuvent utiliser des espaces de stockage distincts : importe depuis l’icône.</p><p>Prototype 0.1 : titres et artistes modifiables, favoris, file, aléatoire et répétition. Les tags et pochettes ne sont pas encore lus automatiquement. MP4 : lecture audio si compatible, mais le fichier vidéo entier est conservé. L’arrière-plan et les transitions restent à vérifier sur ton iPhone.</p></details>
+</main>
+<footer class="mini" id="mini" hidden><div class="mini-inner"><div class="art" aria-hidden="true">♫</div><button class="mini-open" id="open-player"><b id="mini-title"></b><small id="mini-artist"></small></button><button class="primary" id="mini-play" aria-label="Lecture">▶</button><button id="mini-next" aria-label="Suivant">⏭</button></div><div class="progress"><span id="progress"></span></div></footer>
+<dialog id="player-dialog"><div class="dialog-head"><span class="eyebrow">À L’ÉCOUTE</span><button id="close-player" aria-label="Fermer le lecteur">✕</button></div><div class="cover" aria-hidden="true">♫</div><h2 class="now-title" id="now-title"></h2><p id="now-artist"></p><input id="seek" type="range" min="0" max="100" value="0" step=".1" aria-label="Position de lecture"><div class="times"><span id="elapsed">0:00</span><span id="duration">0:00</span></div><div class="transport"><button id="previous" aria-label="Précédent">⏮</button><button class="primary" id="play" aria-label="Lecture">▶</button><button id="next" aria-label="Suivant">⏭</button></div><div class="modes"><button id="shuffle" aria-pressed="false">Aléatoire : non</button><button id="repeat">Répéter : non</button></div><div class="queue" id="queue"></div></dialog>
+<dialog id="editor"><form id="edit-form"><div class="dialog-head"><h2>Informations</h2><button type="button" id="close-editor" aria-label="Fermer">✕</button></div><label>Titre<input id="edit-title" required maxlength="200"></label><label>Artiste<input id="edit-artist" maxlength="200"></label><div class="actions"><button class="primary" type="submit">Enregistrer</button><button type="button" id="favorite-track">♡ Favori</button><button type="button" id="delete-track" class="danger">Supprimer</button></div></form></dialog>
+<audio id="audio" preload="auto"></audio>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const audio = $('audio');
+let db, tracks = [], queue = [], originalQueue = [], currentId = null, favoriteFilter = false;
+let shuffle = false, repeat = 0, editingId = null, selectionToken = 0, preparingToken = 0;
+let activeURL = null, prepared = null, scrubbing = false;
+const finite = n => Number.isFinite(n) ? n : 0;
+const time = n => { n = Math.floor(Math.max(0, finite(n))); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2,'0'); };
+const trackById = id => tracks.find(t => t.id === id);
+function notify(message, error = false) { $('notice').textContent = message; $('notice').classList.toggle('error', error); $('notice').hidden = false; }
+function openDB() { return new Promise((resolve,reject) => {
+ const request = indexedDB.open('music-local-v1',1);
+ request.onupgradeneeded = () => { request.result.createObjectStore('tracks',{keyPath:'id'}); request.result.createObjectStore('files'); };
+ request.onsuccess = () => { request.result.onversionchange = () => { request.result.close(); notify('Le stockage a changé. Rouvre le lecteur.',true); }; resolve(request.result); };
+ request.onerror = () => reject(request.error);
+ request.onblocked = () => notify('Ferme les autres onglets du lecteur puis réessaie.',true);
+}); }
+function read(store, key) { return new Promise((resolve,reject) => {
+ const tx = db.transaction(store,'readonly'); const request = key === undefined ? tx.objectStore(store).getAll() : tx.objectStore(store).get(key);
+ request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
+}); }
+function writeTrack(track, file, remove = false) { return new Promise((resolve,reject) => {
+ const tx = db.transaction(['tracks','files'],'readwrite');
+ if(remove) { tx.objectStore('tracks').delete(track.id); tx.objectStore('files').delete(track.id); }
+ else { tx.objectStore('tracks').put(track); if(file) tx.objectStore('files').put(file,track.id); }
+ tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('Écriture interrompue'));
+}); }
+function shownTracks() { const query = $('search').value.trim().toLocaleLowerCase(); return tracks.filter(t => (!favoriteFilter || t.favorite) && (t.title+' '+t.artist).toLocaleLowerCase().includes(query)); }
+function render() {
+ const list = $('tracks'); list.replaceChildren();
+ const shown = shownTracks(); $('count').textContent = shown.length + (shown.length > 1 ? ' titres' : ' titre');
+ if(!shown.length) { const empty = document.createElement('div'); empty.className = 'empty'; const title = document.createElement('strong'); title.textContent = tracks.length ? 'Aucun résultat' : 'Ta première écoute commence ici'; empty.append(title,document.createTextNode(tracks.length ? 'Essaie un autre filtre.' : 'Ajoute deux morceaux pour tester le lecteur.')); list.append(empty); }
+ for(const t of shown) {
+  const row = document.createElement('div'); row.className = 'track' + (t.id === currentId ? ' active' : '');
+  const button = document.createElement('button'); button.className = 'track-main';
+  const art = document.createElement('span'); art.className = 'art'; art.textContent = t.favorite ? '♥' : '♫'; art.setAttribute('aria-hidden','true');
+  const text = document.createElement('span'); text.className = 'track-text';
+  const title = document.createElement('b'); title.textContent = t.title;
+  const subtitle = document.createElement('small'); subtitle.textContent = t.artist + ' · ' + t.ext.toUpperCase();
+  text.append(title,subtitle); button.append(art,text); button.onclick = () => startQueue(t.id, shown.map(x=>x.id));
+  const more = document.createElement('button'); more.className = 'more'; more.textContent = '⋯'; more.setAttribute('aria-label','Modifier '+t.title); more.onclick = () => openEditor(t.id);
+  row.append(button,more); list.append(row);
+ }
+ $('storage').textContent = (tracks.reduce((sum,t)=>sum+t.size,0)/1048576).toFixed(1) + ' Mo de fichiers sur cet appareil';
+ renderQueue(); syncUI();
+}
+function renderQueue() {
+ $('queue').replaceChildren(); if(!queue.length) return;
+ const heading = document.createElement('h2'); heading.textContent = 'File d’attente'; $('queue').append(heading);
+ queue.forEach(id => { const t=trackById(id); if(!t)return; const b=document.createElement('button'); b.textContent=(id===currentId?'♫  ':'')+t.title; b.className=id===currentId?'active':''; b.onclick=()=>selectTrack(id); $('queue').append(b); });
+}
+function randomized(ids) { const a=[...ids]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function startQueue(id, ids) { originalQueue=[...ids]; queue=shuffle?[id,...randomized(ids.filter(x=>x!==id))]:[...ids]; selectTrack(id); }
+function discardPrepared() { preparingToken++; if(prepared) URL.revokeObjectURL(prepared.url); prepared=null; }
+function nextId(automatic=false) {
+ if(!currentId || !queue.length)return null;
+ if(automatic && repeat===2)return currentId;
+ const index=queue.indexOf(currentId); return queue[index+1] || (repeat===1?queue[0]:null);
+}
+async function prepareNext() {
+ discardPrepared(); const token=preparingToken; const id=nextId(); if(!id || id===currentId)return;
+ try { const file=await read('files',id); if(token!==preparingToken || !file)return; prepared={id,url:URL.createObjectURL(file)}; } catch { /* Sélection manuelle possible si la préparation échoue. */ }
+}
+async function selectTrack(id) {
+ const t=trackById(id); if(!t)return;
+ const token=++selectionToken;
+ let url;
+ try {
+  if(prepared?.id===id) { url=prepared.url; prepared=null; }
+  else { const file=await read('files',id); if(token!==selectionToken)return; if(!file)throw new Error('Copie locale introuvable. Réimporte le fichier.'); url=URL.createObjectURL(file); }
+  if(token!==selectionToken) { URL.revokeObjectURL(url); return; }
+  audio.pause(); if(activeURL)URL.revokeObjectURL(activeURL); activeURL=url; currentId=id;
+  audio.src=url; audio.load();
+  const promise=audio.play(); render(); updateMedia(); prepareNext();
+  await promise;
+ } catch(error) { if(token===selectionToken)notify(error.name==='NotAllowedError'?'Appuie sur ▶ pour autoriser la lecture dans Safari.':('Lecture impossible : '+error.message),true); }
+}
+async function togglePlay() { if(!currentId)return; if(!audio.paused)audio.pause(); else { try { if(audio.ended)audio.currentTime=0; await audio.play(); } catch(error){notify('Lecture impossible : '+error.message,true);} } }
+function next(automatic=false) { const id=nextId(automatic); if(id===currentId && automatic) { audio.currentTime=0; audio.play().catch(()=>notify('Appuie sur ▶ pour reprendre.',true)); } else if(id)selectTrack(id); }
+function previous() { if(audio.currentTime>3){audio.currentTime=0;return;} const i=queue.indexOf(currentId); if(i>0)selectTrack(queue[i-1]); else audio.currentTime=0; }
+function syncUI() {
+ const t=trackById(currentId); $('mini').hidden=!t;
+ if(t){$('mini-title').textContent=t.title; $('mini-artist').textContent=t.artist; $('now-title').textContent=t.title; $('now-artist').textContent=t.artist;}
+ for(const id of ['mini-play','play']) { $(id).textContent=audio.paused?'▶':'Ⅱ'; $(id).setAttribute('aria-label',audio.paused?'Lecture':'Pause'); }
+ $('shuffle').textContent='Aléatoire : '+(shuffle?'oui':'non'); $('shuffle').classList.toggle('on',shuffle); $('shuffle').setAttribute('aria-pressed',String(shuffle));
+ $('repeat').textContent='Répéter : '+['non','la file','ce titre'][repeat]; $('repeat').classList.toggle('on',repeat!==0);
+ $('next').disabled=$('mini-next').disabled=!nextId();
+}
+function updateMedia() {
+ if(!('mediaSession' in navigator))return;
+ const t=trackById(currentId);
+ navigator.mediaSession.metadata=t?new MediaMetadata({title:t.title,artist:t.artist,album:'Music local',artwork:[{src:new URL('./icon.png',location.href).href,sizes:'512x512',type:'image/png'}]}):null;
+ navigator.mediaSession.playbackState=!t?'none':audio.paused?'paused':'playing'; updatePosition();
+}
+function updatePosition() { if(navigator.mediaSession?.setPositionState && Number.isFinite(audio.duration) && audio.duration>0){try{navigator.mediaSession.setPositionState({duration:audio.duration,playbackRate:audio.playbackRate,position:Math.min(audio.duration,Math.max(0,audio.currentTime))});}catch{}} }
+function stop() { ++selectionToken; audio.pause(); audio.removeAttribute('src'); audio.load(); if(activeURL)URL.revokeObjectURL(activeURL); activeURL=null; discardPrepared(); currentId=null; $('player-dialog').close(); updateMedia(); }
+function openEditor(id) { const t=trackById(id); editingId=id; $('edit-title').value=t.title; $('edit-artist').value=t.artist; $('favorite-track').textContent=t.favorite?'♥ Retirer le favori':'♡ Ajouter aux favoris'; $('editor').showModal(); }
+$('edit-form').onsubmit=async event=>{event.preventDefault(); const title=$('edit-title').value.trim(); if(!title)return; const track={...trackById(editingId),title,artist:$('edit-artist').value.trim()||'Artiste inconnu'}; try{await writeTrack(track); tracks=tracks.map(t=>t.id===track.id?track:t); $('editor').close(); render(); updateMedia();}catch{notify('Modification non enregistrée.',true);} };
+$('favorite-track').onclick=async()=>{const track={...trackById(editingId)};track.favorite=!track.favorite;try{await writeTrack(track);tracks=tracks.map(t=>t.id===track.id?track:t);$('editor').close();render();}catch{notify('Favori non enregistré.',true);} };
+$('delete-track').onclick=async()=>{const t=trackById(editingId);if(!confirm('Supprimer « '+t.title+' » du lecteur ? Ton fichier original sera conservé.'))return;try{await writeTrack(t,null,true);if(t.id===currentId)stop();tracks=tracks.filter(x=>x.id!==t.id);queue=queue.filter(x=>x!==t.id);originalQueue=originalQueue.filter(x=>x!==t.id);prepareNext();$('editor').close();render();}catch{notify('Suppression impossible.',true);} };
+$('import').onclick=()=>$('files').click();
+$('files').onchange=async()=>{
+ const files=[...$('files').files]; if(!files.length)return; $('import').disabled=true;
+ const failures=[]; let added=0,duplicates=0;
+ try{
+  if(navigator.storage?.persist)navigator.storage.persist().catch(()=>false);
+  for(let i=0;i<files.length;i++) {
+   const file=files[i]; $('import-progress').textContent=`Import ${i+1}/${files.length} : ${file.name}`;
+   const ext=file.name.split('.').pop().toLowerCase();
+   if(!['mp3','m4a','wav','mp4'].includes(ext) || !file.size) {failures.push(file.name+' : format ou fichier invalide.');continue;}
+   if(tracks.some(t=>t.sourceName===file.name && t.size===file.size && t.modified===file.lastModified)){duplicates++;continue;}
+   const track={id:crypto.randomUUID(),title:file.name.replace(/\.[^.]+$/,''),artist:'Artiste inconnu',sourceName:file.name,size:file.size,modified:file.lastModified,ext,favorite:false};
+   try{const types={mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',mp4:'video/mp4'};await writeTrack(track,file.slice(0,file.size,file.type||types[ext]));tracks.push(track);added++;}
+   catch(error){failures.push(file.name+' : '+(error.name==='QuotaExceededError'?'espace de stockage insuffisant.':error.message));break;}
+  }
+  render(); notify(`${added} morceau(s) importé(s). ${duplicates?duplicates+' fichier(s) déjà présent(s).':''}${failures.length?'\n'+failures.join('\n'):''}`,failures.length>0);
+ }finally{$('files').value='';$('import-progress').textContent='';$('import').disabled=false;}
+};
+$('search').oninput=render;
+$('favorites').onclick=()=>{favoriteFilter=!favoriteFilter;$('favorites').setAttribute('aria-pressed',String(favoriteFilter));$('favorites').textContent=favoriteFilter?'♥':'♡';render();};
+$('open-player').onclick=()=>$('player-dialog').showModal(); $('close-player').onclick=()=>$('player-dialog').close(); $('close-editor').onclick=()=>$('editor').close();
+$('mini-play').onclick=$('play').onclick=togglePlay; $('next').onclick=$('mini-next').onclick=()=>next(); $('previous').onclick=previous;
+$('shuffle').onclick=()=>{shuffle=!shuffle;if(currentId){queue=shuffle?[currentId,...randomized(originalQueue.filter(id=>id!==currentId))]:[...originalQueue];prepareNext();}render();};
+$('repeat').onclick=()=>{repeat=(repeat+1)%3;prepareNext();syncUI();};
+$('seek').oninput=()=>{scrubbing=true;$('elapsed').textContent=time(Number($('seek').value));};
+$('seek').onchange=()=>{audio.currentTime=Number($('seek').value);scrubbing=false;updatePosition();};
+for(const event of ['play','pause','loadedmetadata','durationchange'])audio.addEventListener(event,()=>{syncUI();updateMedia();});
+audio.addEventListener('ended',()=>{syncUI();next(true);});
+audio.addEventListener('error',()=>{if(currentId){notify('Ce fichier ne peut pas être lu. Essaie un MP3 ou un M4A compatible.',true);syncUI();}});
+audio.addEventListener('timeupdate',()=>{const duration=finite(audio.duration);$('seek').max=String(duration||1);if(!scrubbing){$('seek').value=String(audio.currentTime||0);$('elapsed').textContent=time(audio.currentTime);}$('duration').textContent=time(duration);$('progress').style.width=(duration?audio.currentTime/duration*100:0)+'%';updatePosition();});
+if('mediaSession' in navigator){for(const [name,handler] of Object.entries({play:()=>audio.play().catch(()=>notify('Ouvre le lecteur et appuie sur ▶.',true)),pause:()=>audio.pause(),nexttrack:()=>next(),previoustrack:previous,seekto:e=>{if(Number.isFinite(e.seekTime)&&Number.isFinite(audio.duration)){audio.currentTime=Math.min(audio.duration,Math.max(0,e.seekTime));updatePosition();}}})){try{navigator.mediaSession.setActionHandler(name,handler);}catch{}}}
+async function setupOffline() {
+ if(!('serviceWorker' in navigator)){$('offline').textContent='Mode hors ligne indisponible dans ce navigateur.';return;}
+ try{
+  await navigator.serviceWorker.register('./sw.js');
+  const registration=await navigator.serviceWorker.ready;
+  const channel=new MessageChannel();
+  channel.port1.onmessage=event=>{if(event.data==='READY')$('offline').textContent='Prêt hors ligne · prototype 0.1';};
+  registration.active.postMessage('CHECK_READY',[channel.port2]);
+ }catch{$('offline').textContent='Mode hors ligne non prêt. Rouvre la page avec Internet.';}
+}
+(async()=>{try{db=await openDB();tracks=await read('tracks');render();}catch(error){$('import').disabled=true;notify('Stockage local indisponible. Ouvre ce lecteur hors navigation privée dans Safari. '+error.message,true);}setupOffline();})();
+</script>
+</body>
+</html>

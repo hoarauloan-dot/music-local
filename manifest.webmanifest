@@ -1,0 +1,7 @@
+{
+ "id": "./", "name": "Music local", "short_name": "Music local", "lang": "fr",
+ "description": "Ton lecteur musical local, sans compte ni publicité.",
+ "start_url": "./", "scope": "./", "display": "standalone",
+ "background_color": "#0e1319", "theme_color": "#0e1319",
+ "icons": [{"src":"./icon.png","sizes":"512x512","type":"image/png","purpose":"any"}]
+}
