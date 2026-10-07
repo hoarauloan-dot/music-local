@@ -29,3 +29,28 @@ dialog{box-sizing:border-box;width:min(460px,calc(100vw - 24px));max-width:calc(
 @media(min-width:760px){#player-dialog{width:480px;left:50%;right:auto;transform:translateX(-50%)}.group-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mini{max-width:980px;margin:0 auto}}
 @media(max-height:650px){#player-dialog{gap:3px;padding-top:env(safe-area-inset-top)}#player-dialog .now-title{font-size:19px}#player-dialog .transport{height:52px;margin:0}#player-dialog .transport .primary{height:50px;min-width:50px;width:50px}#player-dialog .now-fav{height:30px;min-height:30px}}
 @media(orientation:landscape) and (max-height:500px){#player-dialog[open]{overflow-y:auto}#player-dialog .cover{display:none}}
+/* Correctif 0.4.1 : cadre fixe, contenu défilant */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  position: fixed;
+  inset: 0;
+}
+main {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+body:has(dialog[open]) main { overflow: hidden; }
+.brand { cursor: pointer; }
+.brand:focus-visible { outline: 2px solid white; }
+#mini-stop {
+  flex: 0 0 36px;
+  width: 36px;
+  padding: 0;
+  background: transparent;
+  font-size: 24px;
+}
