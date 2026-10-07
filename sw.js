@@ -2,8 +2,8 @@
 // Cache limité à cette application : ne touche pas aux autres sites du compte GitHub.
 const BASE = new URL('./', self.location.href).href;
 const PREFIX = 'music-local:' + BASE + ':';
-const CACHE = PREFIX + 'v2';
-const ASSETS = ['index.html', 'manifest.webmanifest', 'icon.png', 'style.css', 'metadata.js', 'player.js', 'app.js'].map(path => new URL(path, BASE).href);
+const CACHE = PREFIX + 'v3';
+const ASSETS = ['index.html', 'manifest.webmanifest', 'icon.png?v=3', 'style.css', 'metadata.js', 'player.js', 'app.js'].map(path => new URL(path, BASE).href);
 self.addEventListener('install', event => {
  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

@@ -90,7 +90,7 @@ function syncUI() {
 function updateMedia() {
  if(!('mediaSession' in navigator))return;
  const t=trackById(currentId);
- navigator.mediaSession.metadata=t?new MediaMetadata({title:t.title,artist:t.artist,album:'Music local',artwork:[{src:new URL('./icon.png',location.href).href,sizes:'512x512',type:'image/png'}]}):null;
+ navigator.mediaSession.metadata=t?new MediaMetadata({title:t.title,artist:t.artist,album:"Loan's Music",artwork:[{src:new URL('./icon.png?v=3',location.href).href,sizes:'512x512',type:'image/png'}]}):null;
  navigator.mediaSession.playbackState=!t?'none':audio.paused?'paused':'playing'; updatePosition();
 }
 function updatePosition() { if(navigator.mediaSession?.setPositionState && Number.isFinite(audio.duration) && audio.duration>0){try{navigator.mediaSession.setPositionState({duration:audio.duration,playbackRate:audio.playbackRate,position:Math.min(audio.duration,Math.max(0,audio.currentTime))});}catch{}} }
@@ -136,7 +136,7 @@ async function setupOffline() {
   await navigator.serviceWorker.register('./sw.js');
   const registration=await navigator.serviceWorker.ready;
   const channel=new MessageChannel();
-  channel.port1.onmessage=event=>{if(event.data==='READY')$('offline').textContent='Prêt hors ligne · version 0.2';};
+  channel.port1.onmessage=event=>{if(event.data==='READY')$('offline').textContent="Prêt hors ligne · Loan's Music 0.3";};
   registration.active.postMessage('CHECK_READY',[channel.port2]);
  }catch{$('offline').textContent='Mode hors ligne non prêt. Rouvre la page avec Internet.';}
 }

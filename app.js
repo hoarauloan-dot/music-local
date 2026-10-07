@@ -1,6 +1,6 @@
 'use strict';
 // Interface et collections. Les stores tracks/files de la V0.1 sont conservés.
-let playlists=[],tab='titles',detail=null,playlistEditId=null,draftArtwork=null;
+let playlists=[],tab='home',detail=null,playlistEditId=null,draftArtwork=null;
 let recentIds=[],resumeSnapshot=null,saveTimer=null;
 try{recentIds=JSON.parse(localStorage.getItem('ml-recent')||'[]');if(!Array.isArray(recentIds))recentIds=[];resumeSnapshot=JSON.parse(localStorage.getItem('ml-session')||'null');}catch{}
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
@@ -14,7 +14,7 @@ function collectionTracks(){
  if(detail?.kind==='artist')values=values.filter(t=>t.artist===detail.key);
  if(detail?.kind==='album')values=values.filter(t=>albumKey(t)===detail.key);
  if(detail?.kind==='playlist'){const p=playlists.find(x=>x.id===detail.key);values=(p?.trackIds||[]).map(trackById).filter(Boolean);}
- const query=$('search').value.trim().toLocaleLowerCase();values=values.filter(t=>[t.title,t.artist,t.album||''].join(' ').toLocaleLowerCase().includes(query));
+ const query=normalizeSearch($('search').value);values=values.filter(t=>normalizeSearch([t.title,t.artist,t.album||''].join(' ')).includes(query));
  if(detail?.kind!=='playlist'){
   const mode=$('sort').value;
   values.sort((a,b)=>mode==='recent'?(b.importedAt||0)-(a.importedAt||0):String(a[mode]||'').localeCompare(String(b[mode]||''),'fr',{numeric:true,sensitivity:'base'}));
@@ -45,10 +45,10 @@ function trackRow(t,list){
  const more=action('⋯',()=>openEditor(t.id),'more');more.setAttribute('aria-label','Options de '+t.title);row.append(more);return row;
 }
 render=()=>{
- const labels={titles:'Titres',artists:'Artistes',albums:'Albums',playlists:'Playlists',favorites:'Favoris'};
+ const labels={home:'Accueil',search:'Recherche',titles:'Titres',artists:'Artistes',albums:'Albums',favorites:'Favoris'};
  $('tabs').replaceChildren(...Object.entries(labels).map(([key,label])=>{const b=action(label,()=>setTab(key),tab===key?'selected':'');b.setAttribute('aria-current',tab===key?'page':'false');return b;}));
  $('back').hidden=!detail;$('back').onclick=()=>{detail=null;$('search').value='';render();};
- $('section-title').textContent=detail?.name||({titles:'Tous les titres',artists:'Tes artistes',albums:'Tes albums',playlists:'Tes playlists',favorites:'Tes favoris'}[tab]);
+ $('section-title').textContent=detail?.name||({home:'Mes playlists',search:'Rechercher un son',titles:'Tous les titres',artists:'Tes artistes',albums:'Tes albums',playlists:'Tes playlists',favorites:'Tes favoris'}[tab]);
  const list=$('tracks');list.replaceChildren();const controls=$('collection-actions');controls.replaceChildren();
  const grouped=!detail&&['artists','albums','playlists'].includes(tab);$('sort').hidden=grouped||detail?.kind==='playlist';
  const visible=collectionTracks();
@@ -57,7 +57,7 @@ render=()=>{
   const p=playlists.find(x=>x.id===detail.key);
   if(p){controls.append(action('Renommer',()=>editPlaylist(p)),action('Supprimer',async()=>{if(!confirm('Supprimer la playlist « '+p.name+' » ? Les morceaux seront conservés.'))return;try{await writePlaylist(p,true);playlists=playlists.filter(x=>x.id!==p.id);detail=null;render();}catch(error){notify(error.message,true);}},'danger'));}
  }
- if(!grouped&&visible.length){controls.prepend(action('▶ Tout lire',()=>startQueue(visible[0].id,visible.map(x=>x.id)),'primary'),action('⇄ Mélanger',()=>{shuffle=true;startQueue(visible[Math.floor(Math.random()*visible.length)].id,visible.map(x=>x.id));}));}
+ if(!grouped&&visible.length){controls.prepend(action('▶ Tout lire',()=>startQueue(visible[0].id,visible.map(x=>x.id)),'primary'),action('⇄ Mélanger',()=>{shuffle=true;startQueue(visible[randomIndex(visible.length)].id,visible.map(x=>x.id));}));}
  if(grouped){
   const groups=new Map();
   if(tab==='playlists')for(const p of playlists)groups.set(p.id,{name:p.name,items:p.trackIds.map(trackById).filter(Boolean)});
@@ -72,14 +72,14 @@ render=()=>{
   if(!visible.length){const empty=node('div','empty');empty.append(node('strong','',tracks.length?'Aucun morceau ici':'À toi de composer la suite.'),node('span','',detail?.kind==='playlist'?'Depuis Titres, appuie sur ⋯ pour ajouter tes morceaux à cette playlist.':'Importe des morceaux ou essaie une autre recherche.'));list.append(empty);}
  }
  const recent=$('recent-section');recent.replaceChildren();
- if(tab==='titles'&&!detail&&!$('search').value){const values=recentIds.map(trackById).filter(Boolean).slice(0,6);if(values.length){recent.append(node('h2','','Récemment écoutés'));const strip=node('div','recent-strip');for(const t of values){const b=action('',()=>startQueue(t.id,tracks.map(x=>x.id)),'recent-card');b.append(art(t),node('b','',t.title));strip.append(b);}recent.append(strip);}}
+ if((tab==='titles'||tab==='home')&&!detail&&!$('search').value){const values=recentIds.map(trackById).filter(Boolean).slice(0,6);if(values.length){recent.append(node('h2','','Récemment écoutés'));const strip=node('div','recent-strip');for(const t of values){const b=action('',()=>startQueue(t.id,tracks.map(x=>x.id)),'recent-card');b.append(art(t),node('b','',t.title));strip.append(b);}recent.append(strip);}}
  $('storage').textContent=(tracks.reduce((sum,t)=>sum+t.size,0)/1048576).toFixed(1)+' Mo de musique · '+playlists.length+' playlist(s)';
  renderQueue();syncUI();
 };
 const basicSyncUI=syncUI;
 syncUI=()=>{basicSyncUI();const t=trackById(currentId);if(t){setArt($('mini-art'),t);setArt($('now-art'),t);$('now-favorite').textContent=t.favorite?'♥':'♡';$('now-favorite').classList.toggle('on',!!t.favorite);$('now-favorite').setAttribute('aria-label',t.favorite?'Retirer des favoris':'Ajouter aux favoris');}};
 const basicMedia=updateMedia;
-updateMedia=()=>{basicMedia();const t=trackById(currentId);if(navigator.mediaSession && t){navigator.mediaSession.metadata=new MediaMetadata({title:t.title,artist:t.artist,album:t.album||'Music local',artwork:[{src:t.artwork||new URL('./icon.png',location.href).href,type:t.artwork?'image/jpeg':'image/png'}]});}};
+updateMedia=()=>{basicMedia();const t=trackById(currentId);if(navigator.mediaSession && t){navigator.mediaSession.metadata=new MediaMetadata({title:t.title,artist:t.artist,album:t.album||"Loan's Music",artwork:[{src:t.artwork||new URL('./icon.png?v=3',location.href).href,type:t.artwork?'image/jpeg':'image/png'}]});}};
 function saveSession(){try{localStorage.setItem('ml-session',JSON.stringify({currentId,queue,originalQueue,shuffle,repeat,position:finite(audio.currentTime)}));localStorage.setItem('ml-recent',JSON.stringify(recentIds));}catch{}}
 function queueChanged(){prepareNext();renderQueue();syncUI();saveSession();}
 function moveQueue(index,delta){const j=index+delta;if(index<0||j<0||j>=queue.length)return;[queue[index],queue[j]]=[queue[j],queue[index]];if(!shuffle)originalQueue=[...queue];queueChanged();}
@@ -123,7 +123,7 @@ audio.addEventListener('pause',saveSession);
 audio.addEventListener('timeupdate',()=>{if(!saveTimer){saveTimer=setTimeout(()=>{saveTimer=null;saveSession();},4000);}});
 audio.addEventListener('loadedmetadata',async()=>{const t=trackById(currentId),duration=audio.duration;if(!t||!Number.isFinite(duration)||duration<=0)return;const changed={...t,duration};try{await writeTrack(changed);const index=tracks.findIndex(x=>x.id===changed.id);if(index>=0)tracks[index]=changed;}catch{}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSession();});
-$('export-catalog').onclick=()=>{const catalog={version:2,exportedAt:new Date().toISOString(),note:'Métadonnées et playlists uniquement. Audio et pochettes non inclus.',tracks:tracks.map(({artwork,...t})=>t),playlists};const blob=new Blob([JSON.stringify(catalog,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=node('a');link.href=url;link.download='music-local-catalogue.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);};
+$('export-catalog').onclick=()=>{const catalog={version:2,exportedAt:new Date().toISOString(),note:'Métadonnées et playlists uniquement. Audio et pochettes non inclus.',tracks:tracks.map(({artwork,...t})=>t),playlists:playlists.map(({artwork,...p})=>p)};const blob=new Blob([JSON.stringify(catalog,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=node('a');link.href=url;link.download='loans-music-catalogue.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);};
 $('check-update').onclick=async()=>{if(!navigator.onLine){notify('Reconnecte-toi à Internet pour chercher une mise à jour.');return;}try{const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update();notify('Vérification effectuée. Ferme puis rouvre le lecteur après la fin de la lecture.');}else notify('Rouvre le lecteur avec Internet pour activer le mode hors ligne.');}catch{notify('Vérification impossible pour le moment.',true);}};
 // Une reprise prépare le morceau sans le lancer automatiquement.
 async function restoreSession(){
@@ -135,4 +135,91 @@ async function restoreSession(){
  const position=Number.isFinite(s.position)?Math.max(0,s.position):0;
  audio.addEventListener('loadedmetadata',()=>{audio.currentTime=Math.min(position,finite(audio.duration));updatePosition();},{once:true});audio.src=activeURL;audio.load();prepareNext();render();updateMedia();
 }
+const baseNotify=notify;
+notify=(message,error=false)=>{baseNotify(message,error);const dialog=document.querySelector('dialog[open]');if(dialog){let status=dialog.querySelector('.dialog-status');if(!status){status=node('p','dialog-status');status.setAttribute('role','status');dialog.append(status);}status.textContent=message;status.style.color=error?'#ffb4b4':'#bdbdbd';}};
+// Loan's Music : accueil, couvertures de playlists et mélange uniforme.
+function normalizeSearch(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();}
+function randomIndex(n){
+ if(!Number.isInteger(n)||n<1||n>4294967296)throw new RangeError('Taille de sélection invalide');
+ const limit=Math.floor(4294967296/n)*n,buffer=new Uint32Array(1);let value;
+ do{crypto.getRandomValues(buffer);value=buffer[0];}while(value>=limit);
+ return value%n;
+}
+randomized=ids=>{const result=[...ids];for(let i=result.length-1;i>0;i--){const j=randomIndex(i+1);[result[i],result[j]]=[result[j],result[i]];}return result;};
+// Un passage aléatoire contient chaque morceau une seule fois.
+// À la répétition de toute la file, nouveau mélange, sans répéter immédiatement le dernier titre.
+const plainNext=next;
+next=(automatic=false)=>{
+ if(shuffle&&repeat===1&&queue.length>1&&queue.indexOf(currentId)===queue.length-1){
+  const previousId=currentId;const candidates=randomized(queue.filter(id=>id!==previousId));const first=candidates.shift();
+  queue=[first,...randomized([...candidates,previousId])];selectTrack(first);saveSession();return;
+ }
+ plainNext(automatic);
+};
+let playlistPhotoTarget=null;
+let allMusicArtwork=null;
+try{allMusicArtwork=localStorage.getItem('lm-all-artwork')||null;}catch{}
+function playlistCover(p){return p?.artwork?{artwork:p.artwork}:p?.trackIds?.map(trackById).find(t=>t?.artwork)||null;}
+function choosePlaylistPhoto(key){playlistPhotoTarget=key;$('playlist-photo').value='';$('playlist-photo').click();}
+$('playlist-photo').onchange=async()=>{
+ const file=$('playlist-photo').files[0],target=playlistPhotoTarget;if(!file)return;
+ try{
+  const cover=await MusicMetadata.imageData(file);
+  if(target==='all'){localStorage.setItem('lm-all-artwork',cover);allMusicArtwork=cover;}
+  else{const p=playlists.find(x=>x.id===target);if(!p)return;await savePlaylist({...p,artwork:cover});}
+  render();notify('Photo de playlist enregistrée sur cet appareil.');
+ }catch(error){notify('Photo non enregistrée : '+error.message,true);}
+};
+function homeCard(title,subtitle,cover,onClick,isAll=false){const card=action('',onClick,'group-card home-card'+(isAll?' all-music':''));const picture=art(cover);if(isAll&&!cover){picture.textContent='♫';picture.classList.add('all-cover');}card.append(picture,node('b','',title),node('small','',subtitle));return card;}
+const renderCollections=render;
+render=()=>{
+ renderCollections();
+ const onHome=tab==='home'&&!detail;
+ document.querySelector('.hero').hidden=!onHome;
+ $('playlist-hero').replaceChildren();$('playlist-hero').hidden=true;
+ // La recherche est dédiée aux fichiers importés ; aucun accès silencieux au reste de Fichiers.
+ $('search').placeholder=tab==='search'?'Titre, artiste ou album dans mes imports…':onHome?'Rechercher une playlist…':'Rechercher dans cette sélection…';
+ if(tab==='search')$('section-title').textContent='Rechercher dans mes morceaux';
+ if(onHome){
+  const list=$('tracks');list.replaceChildren();const grid=node('div','group-grid home-grid');
+  const query=normalizeSearch($('search').value);
+  if(!query||normalizeSearch('Toutes les musiques').includes(query))grid.append(homeCard('Toutes les musiques',tracks.length+' morceaux importés',allMusicArtwork?{artwork:allMusicArtwork}:null,()=>openDetail('all','all','Toutes les musiques'),true));
+  for(const p of playlists.filter(p=>normalizeSearch(p.name).includes(query))){grid.append(homeCard(p.name,p.trackIds.filter(trackById).length+' morceau(s)',playlistCover(p),()=>openDetail('playlist',p.id,p.name)));}
+  list.append(grid);$('count').textContent=playlists.length+' playlist(s) personnelle(s)';$('sort').hidden=true;
+  $('collection-actions').replaceChildren(action('＋ Créer une playlist',()=>editPlaylist(),'primary'),action('⌕ Trouver un morceau',()=>{setTab('search');$('search').focus();}));
+  if(!playlists.length&&!query){const hint=node('p','home-hint','Crée une playlist, puis ouvre-la pour choisir sa photo et y ajouter tes morceaux.');list.append(hint);}
+  if(!grid.children.length)list.append(node('div','empty','Aucune playlist trouvée.'));
+ }
+ if(detail?.kind==='playlist'||detail?.kind==='all'){
+  const p=detail.kind==='playlist'?playlists.find(x=>x.id===detail.key):null;
+  const panel=$('playlist-hero');panel.hidden=false;
+  const target=p?p.id:'all';const cover=action('',()=>choosePlaylistPhoto(target),'playlist-cover-button');cover.setAttribute('aria-label','Changer la photo de '+detail.name);cover.append(art(p?playlistCover(p):allMusicArtwork?{artwork:allMusicArtwork}:null),node('span','cover-caption','＋ Modifier la photo'));
+  const text=node('div','playlist-heading');text.append(node('p','eyebrow',p?'TA PLAYLIST':'TA COLLECTION'),node('h1','',detail.name),node('p','',collectionTracks().length+' morceau(s) · sur cet appareil'));
+  panel.append(cover,text);
+  if(p)$('collection-actions').append(action('＋ Ajouter des morceaux',()=>openTrackPicker(p)));
+ }
+};
+// Sélection multiple pour remplir une playlist sans passer morceau par morceau par ses options.
+function openTrackPicker(playlist){
+ const existing=document.getElementById('track-picker');if(existing)existing.remove();
+ const dialog=node('dialog');dialog.id='track-picker';const heading=node('div','dialog-head');heading.append(node('h2','','Ajouter des morceaux'),action('✕',()=>dialog.close()));
+ const search=node('input');search.type='search';search.placeholder='Rechercher dans mes imports';search.setAttribute('aria-label','Rechercher des morceaux à ajouter');
+ const list=node('div','picker-list');const selected=new Set(playlist.trackIds);
+ const paint=()=>{list.replaceChildren();const filtered=tracks.filter(t=>normalizeSearch(t.title+' '+t.artist).includes(normalizeSearch(search.value)));for(const t of filtered){const label=node('label','picker-track');const box=node('input');box.type='checkbox';box.checked=selected.has(t.id);box.onchange=()=>box.checked?selected.add(t.id):selected.delete(t.id);label.append(box,art(t),node('span','',t.title+' — '+t.artist));list.append(label);}if(!filtered.length)list.append(node('p','','Aucun morceau trouvé. Importe d’abord tes fichiers avec le bouton ＋.'));};
+ search.oninput=paint;
+ const save=action('Enregistrer la sélection',async()=>{save.disabled=true;try{const latest=playlists.find(p=>p.id===playlist.id);if(!latest){dialog.close();return;}const ids=[...latest.trackIds.filter(id=>selected.has(id)&&trackById(id)),...tracks.filter(t=>selected.has(t.id)&&!latest.trackIds.includes(t.id)).map(t=>t.id)];await savePlaylist({...latest,trackIds:ids});dialog.close();notify('Playlist mise à jour.');}catch(error){notify(error.message,true);}finally{save.disabled=false;}},'primary');
+ dialog.append(heading,search,list,save);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});paint();dialog.showModal();
+}
+$('export-audio').onclick=async()=>{
+ const t=trackById(editingId);if(!t)return;
+ try{const blob=await read('files',t.id);if(!blob)throw Error('Copie locale introuvable.');const url=URL.createObjectURL(blob),link=node('a');link.href=url;link.download=t.sourceName||t.title+'.'+t.ext;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}catch(error){notify(error.message,true);}
+};
+let sleepDeadline=0,sleepTimer=null;
+function stopWhenDue(){if(sleepDeadline&&Date.now()>=sleepDeadline){sleepDeadline=0;audio.pause();$('sleep').value='0';clearTimeout(sleepTimer);notify('Lecture arrêtée par le minuteur.');}}
+$('sleep').onchange=()=>{clearTimeout(sleepTimer);const minutes=Number($('sleep').value);sleepDeadline=minutes?Date.now()+minutes*60000:0;if(minutes)sleepTimer=setTimeout(stopWhenDue,minutes*60000);};
+audio.addEventListener('timeupdate',stopWhenDue);audio.addEventListener('play',stopWhenDue);document.addEventListener('visibilitychange',stopWhenDue);
+// Recherche toujours visible en dehors de l'accueil ; elle porte sur tous les imports dans son onglet.
+const baseSetTab=setTab;
+setTab=value=>{baseSetTab(value);if(value==='search')$('search').focus();};
+
 (async()=>{try{db=await openDB();tracks=await read('tracks');playlists=await read('playlists');render();await restoreSession();}catch(error){$('import').disabled=true;notify('Stockage local indisponible : '+error.message,true);}setupOffline();})();
