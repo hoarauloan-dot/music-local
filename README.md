@@ -1,59 +1,92 @@
-# Music local — prototype web 0.1
+# Music local — version 0.2
 
-Lecteur personnel conçu pour un premier essai sur iPhone. Le site et son code sont publics ; les morceaux importés sont enregistrés uniquement dans IndexedDB sur l’appareil. Aucun analytics, dépendance externe ou téléversement de musique. Aucun compte utilisateur dans le lecteur.
+Lecteur web personnel pour iPhone. Hébergement du code sur GitHub Pages ; audio et bibliothèque uniquement sur l’appareil. Aucun serveur de musique, dépendance externe, suivi publicitaire ou compte dans le lecteur.
 
-## Déposer sur GitHub
+## Mise à jour de la V0.1
 
-1. Décompresser `Music-local-web-0.1.zip`.
-2. Ouvrir https://github.com/hoarauloan-dot/music-local
-3. Cliquer sur **Add file → Upload files**.
-4. Déposer les quatre fichiers **index.html**, **sw.js**, **manifest.webmanifest**, **icon.png**, directement à la racine du dépôt. Ne pas déposer le ZIP ni le dossier qui les contient. README.md est facultatif et peut remplacer celui du dépôt.
-5. Cliquer **Commit changes** pour enregistrer dans la branche principale.
-6. Ouvrir **Settings → Pages** (sur mobile, Settings peut être dans le menu `…`).
-7. Sous **Build and deployment**, choisir **Deploy from a branch**. Choisir **main** et **/ (root)**, puis **Save**. Si la branche principale porte un autre nom, sélectionner celle où se trouvent les fichiers.
-8. Attendre la réussite du déploiement, visible dans l’onglet Actions / la page Pages.
-9. Ouvrir l’adresse affichée par GitHub Pages, normalement https://hoarauloan-dot.github.io/music-local/
+**Ne supprime ni l’icône de l’app, ni les données Safari, ni le dépôt.** Garde les originaux de tes musiques. Le domaine et le chemin doivent rester identiques.
 
-Ce lien est l’adresse attendue, pas un déploiement déjà réalisé ou vérifié. Le dépôt n’a pas été modifié depuis cet environnement.
+1. Décompresse le ZIP sur ton PC.
+2. Ouvre https://github.com/hoarauloan-dot/music-local
+3. Add file → Upload files.
+4. Envoie ensemble à la racine ces **8 fichiers** :
+   - index.html
+   - style.css
+   - metadata.js
+   - player.js
+   - app.js
+   - sw.js
+   - manifest.webmanifest
+   - icon.png
+5. Clique Commit changes. Les quatre fichiers portant déjà ces noms sont remplacés et les quatre nouveaux sont ajoutés. README.md est facultatif.
+6. Attends que le déploiement Pages soit terminé dans Actions. Aucun nouveau réglage Pages nécessaire.
+7. Sur l’iPhone, ouvre ton lecteur AVEC Internet, laisse-le ouvert quelques instants, puis ferme et rouvre le lecteur. Si nécessaire, ferme aussi l’ancien onglet Safari. Une première ouverture peut encore montrer la version précédente pendant que le nouveau service worker s’installe.
+8. Vérifie « Prêt hors ligne · version 0.2 » dans la zone Stockage en bas. Le site reste à https://hoarauloan-dot.github.io/music-local/
 
-## Tester sur l’iPhone
+La base IndexedDB garde son nom `music-local-v1`. Son schéma passe à 2, avec un nouveau store `playlists` ; les stores `tracks` et `files` sont conservés. Le nettoyage du cache de l’interface ne supprime pas cette bibliothèque. Ne pas changer de domaine ou d’emplacement pour éviter de changer d’espace de stockage.
 
-1. Ouvrir le site dans **Safari**.
-2. Partager → **Sur l’écran d’accueil** → Ajouter (activer « Ouvrir comme app web » si proposé).
-3. Lancer **Music local depuis cette icône**, puis attendre **Prêt hors ligne**.
-4. Importer deux petits MP3 depuis Fichiers. Commencer par des fichiers connus et lisibles.
-5. Lire le premier, avancer à quelques secondes de la fin, verrouiller l’écran et vérifier le passage au suivant.
-6. Tester pause/reprise et suivant/précédent depuis l’écran verrouillé, puis les AirPods.
-7. Fermer le lecteur, activer le mode avion, le rouvrir depuis l’icône et vérifier bibliothèque + lecture.
+## Ce qui est développé
 
-Ne pas importer toute sa collection avant ces essais. Safari et l’app d’écran d’accueil peuvent avoir des stockages distincts. Garder les originaux : les copies peuvent disparaître après suppression des données du site ou sous certaines contraintes de stockage. La demande de stockage persistant est soumise au navigateur.
+- Nouvelle interface sombre vert charbon, accueil, navigation et cartes d’albums / artistes.
+- Titres, artistes, albums, playlists, favoris ; recherche et tri.
+- Groupes d’albums par artiste + album pour éviter de fusionner les homonymes.
+- Playlists persistantes : créer, renommer, supprimer ; ajouter / retirer / déplacer les titres.
+- Informations éditables : titre, artiste et album ; les fichiers originaux ne sont pas réécrits.
+- Lecture automatique de tags ID3 v2.3/v2.4 courants pour MP3, et tags iTunes pour M4A/MP4 : titre, artiste, album, pochette si compatible.
+- Lecture de la durée à l’import lorsque Safari arrive à lire les métadonnées en six secondes, sinon lors de la lecture.
+- Pochettes personnalisées JPEG/PNG/WebP, redimensionnées localement à 600 px ; maximum 8 Mo avant traitement.
+- Pour les morceaux importés dans la V0.1 : bouton « Relire les tags du fichier » dans leurs options, puis Enregistrer.
+- Mini-lecteur, écran complet, progression, favoris, aléatoire et répétition.
+- File modifiable : monter/descendre, retirer un titre, lire ensuite, ajouter à la fin, vider les suivants. Chaque titre apparaît au plus une fois dans la file.
+- Récemment écoutés, restauration de la file et de la position sans démarrage automatique.
+- Suppression d’un morceau et de ses références aux playlists dans une même transaction.
+- Export JSON du catalogue (informations et playlists, sans fichiers audio ni pochettes). Pas encore de restauration de cet export.
+- Mode hors ligne et Media Session pour les commandes que le navigateur prend en charge.
 
-## Fonctions présentes
+## Limites à connaître
 
-- Import MP3, M4A, WAV, MP4 ; la lecture dépend du codec accepté par Safari.
-- Copies locales persistantes ; import séquentiel, erreurs de stockage affichées.
-- Détection simple des doublons par nom, taille et date (pas une comparaison du contenu).
-- Recherche, favoris, édition du titre et de l’artiste, suppression confirmée.
-- Mini-lecteur, écran de lecture, progression, précédent/suivant.
-- File issue de la liste lancée, aléatoire et répétition arrêt/file/titre.
-- Intégration Media Session lorsque disponible.
-- Cache des fichiers de l’interface pour l’ouverture hors ligne.
+- Ce n’est pas une application native iOS. La lecture écran verrouillé, les commandes et les transitions doivent être testées sur le vrai iPhone.
+- Les MP4 restent entiers. Cette version ne convertit pas les vidéos en audio et ne réduit pas leur taille.
+- Import depuis Fichiers dans l’app ; pas d’extension de réception dans le menu Partager iOS.
+- Pas de conversion universelle des codecs ni de gapless garanti.
+- Tags ID3 v2.2, frames compressées / chiffrées et certaines variantes de métadonnées non prises en charge. Lecture bornée à 8 Mo pour les tags ; possibilité de renseigner les informations manuellement.
+- Formats non compatibles : un fichier peut être ajouté mais échouer à la lecture, avec message d’erreur.
+- Les pochettes ont leur propre coût de stockage, non inclus dans le compteur du poids des fichiers audio.
+- L’export de catalogue n’est PAS une sauvegarde de tes musiques.
+- Effacer les données du site, changer de domaine, ou certaines contraintes de stockage peuvent rendre les fichiers locaux indisponibles. Garde les originaux. Safari et l’app installée peuvent avoir des stockages distincts.
+- Doublons détectés seulement par nom, taille et date du fichier.
 
-## Limites assumées de ce premier jalon
+## Essais conseillés après mise à jour
 
-- Les métadonnées intégrées et pochettes ne sont pas encore lues ; le nom du fichier devient le titre.
-- Pas encore de playlists, classement Artistes/Albums ou réordonnancement de la file.
-- MP4 conservé en entier : pas d’extraction audio ni de gain de stockage dans ce prototype.
-- Pas de réception via le menu Partager iOS ; utiliser Importer dans le lecteur.
-- Pas de restauration de la file ou de la position après fermeture.
-- Pas d’export/sauvegarde de bibliothèque dans cette version.
-- Un fichier peut être importé même si son codec est illisible ; l’erreur est signalée à la lecture.
-- La continuité audio en arrière-plan dépend de Safari/iOS et reste à valider sur le vrai iPhone. Le prochain fichier est préparé pendant la lecture, sans garantie de fonctionnement écran verrouillé.
+1. Vérifier que les imports et favoris V0.1 sont toujours présents.
+2. Importer un MP3 avec tags et un M4A ; contrôler titre/artiste/album/pochette/durée.
+3. Créer une playlist, ajouter deux titres avec ⋯, changer leur ordre et la renommer.
+4. Fermer puis rouvrir : contrôler la playlist, les morceaux, la file et la position.
+5. Tester l’ordre de la file, « Lire ensuite », la répétition, les favoris et une pochette manuelle.
+6. Vérifier lecture + transition au suivant écran verrouillé, les AirPods et le mode avion.
+7. Supprimer une playlist de test : ses morceaux doivent rester dans Titres.
+8. Supprimer un morceau de test : ses références doivent disparaître des playlists.
 
-## Vérification effectuée
+## Vérifications réalisées ici
 
-Syntaxe JavaScript, manifest, références de fichiers et archive vérifiés. Tests de logique de file/répétition et du service worker effectués avec un environnement simulé. Aucun test réel dans Safari, sur iPhone ou dans un navigateur graphique n’a été effectué ici.
+- Syntaxe JavaScript et structure des fichiers.
+- Tests de tags synthétiques MP3/M4A, tags invalides.
+- Tests dans un DOM simulé : recherche, regroupements, playlists, édition, file et migration des stores existants.
+- Tests du cache hors ligne dans un environnement simulé.
 
-## Mises à jour futures
+Pas de test dans un navigateur graphique, dans Safari ni sur iPhone dans cet environnement. Ces vérifications ne remplacent pas les essais réels ci-dessus. Les fichiers ont été préparés, pas publiés dans ton dépôt automatiquement.
 
-Après modification des fichiers, changer la version du cache dans sw.js (`v1` → `v2`, etc.) avant publication. Le cache de l’interface est distinct de la bibliothèque IndexedDB et son renouvellement ne doit pas effacer les morceaux. Garder le même domaine et le même chemin pour conserver l’accès au stockage local.
+## Organisation du code
+
+| Fichier | Rôle |
+| --- | --- |
+| index.html | Structure des écrans et styles de base |
+| style.css | Interface de la version 0.2 |
+| player.js | Stockage, import, moteur audio et commandes système |
+| metadata.js | Lecture de tags et réduction des pochettes |
+| app.js | Bibliothèque, playlists, file et restauration de session |
+| sw.js | Cache des fichiers de l’interface, version v2 |
+| manifest.webmanifest | Installation comme web app |
+| icon.png | Icône |
+
+Pour chaque future modification du code, incrémenter la version du cache dans sw.js. Garder le nom de la base IndexedDB et prévoir une migration lors d’un changement de schéma.
