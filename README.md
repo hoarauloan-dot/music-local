@@ -1,112 +1,52 @@
-# Loan's Music — version 0.3
+# Loan’s Music — 0.4
 
-Lecteur web personnel pour iPhone. Hébergement du code sur GitHub Pages ; audio et bibliothèque uniquement sur l’appareil. Aucun serveur de musique, dépendance externe, suivi publicitaire ou compte dans le lecteur.
+Lecteur web personnel noir, sans compte, publicité ni envoi de musique. Les fichiers audio et les playlists restent dans IndexedDB sur l’appareil. Ce projet est une application web installable ; ce n’est pas une application native App Store.
 
-## Mise à jour depuis la V0.1 ou V0.2
+## Mise à jour depuis Windows
 
-**Ne supprime ni l’icône de l’app, ni les données Safari, ni le dépôt.** Garde les originaux de tes musiques. Le domaine et le chemin doivent rester identiques.
+1. Extraire le ZIP.
+2. Dans le dépôt GitHub `hoarauloan-dot/music-local`, choisir **Add file → Upload files**.
+3. Envoyer les **9 fichiers de l’application** à la racine, sans dossier intermédiaire. `README.md` est facultatif.
+4. Valider **Commit changes**, puis attendre la fin du déploiement Pages.
+5. Ouvrir l’application avec Internet, la fermer puis la rouvrir. Dans ⚙ Paramètres, vérifier **Loan’s Music 0.4**. Le bouton de recherche de mise à jour est dans les paramètres.
 
-1. Décompresse le ZIP sur ton PC.
-2. Ouvre https://github.com/hoarauloan-dot/music-local
-3. Add file → Upload files.
-4. Envoie ensemble à la racine ces **8 fichiers** :
-   - index.html
-   - style.css
-   - metadata.js
-   - player.js
-   - app.js
-   - sw.js
-   - manifest.webmanifest
-   - icon.png
-5. Clique Commit changes. Les quatre fichiers portant déjà ces noms sont remplacés et les quatre nouveaux sont ajoutés. README.md est facultatif.
-6. Attends que le déploiement Pages soit terminé dans Actions. Aucun nouveau réglage Pages nécessaire.
-7. Sur l’iPhone, ouvre ton lecteur AVEC Internet, laisse-le ouvert quelques instants, puis ferme et rouvre le lecteur. Si nécessaire, ferme aussi l’ancien onglet Safari. Une première ouverture peut encore montrer la version précédente pendant que le nouveau service worker s’installe.
-8. Vérifie « Prêt hors ligne · Loan's Music 0.3 » dans la zone Stockage en bas. Le site reste à https://hoarauloan-dot.github.io/music-local/
+Conserver le même site et ne pas effacer les données Safari. La base `music-local-v1`, ses stores et sa version restent identiques : la mise à jour ne supprime ni les morceaux, ni les playlists, ni leurs photos. Conserver les fichiers originaux séparément.
 
-La base IndexedDB garde son nom `music-local-v1`. Son schéma passe à 2, avec un nouveau store `playlists` ; les stores `tracks` et `files` sont conservés. Le nettoyage du cache de l’interface ne supprime pas cette bibliothèque. Ne pas changer de domaine ou d’emplacement pour éviter de changer d’espace de stockage.
+## Utilisation
 
-## Ce qui change dans la version 0.3
+- **Accueil** : importer des fichiers et consulter Titres / Artistes / Albums.
+- **Playlists** : retrouver Toutes les musiques, Favoris et ses playlists ; bouton Créer.
+- **Dans une playlist → Ajouter** : cocher plusieurs sons puis Ajouter (nombre). Les sons déjà présents sont grisés. Changer de recherche conserve la sélection. L’ajout ne retire aucun ancien son.
+- **Dans une playlist → ⋯** : renommer, retirer plusieurs sons ou supprimer la playlist (les fichiers restent dans la bibliothèque).
+- **Photo** : toucher la pochette de la playlist pour la changer.
+- **Sur un son → ⋯** : ajouter à une playlist, gérer le favori, lire ensuite ou modifier les informations.
+- **Recherche** : accepte `ndji`, `N’Dji`, `N'DJI`, les accents, espaces et différents signes de ponctuation. Recherche les mots dans n’importe quel ordre, dans les titres, artistes, albums et noms de fichiers importés. Ce n’est pas une recherche sur Internet ni une correction de toutes les fautes de frappe.
+- **Lecture** : mini-lecteur fixe au-dessus du menu ; toucher le titre ou la pochette pour ouvrir le lecteur plein écran. Toucher le son déjà en lecture ouvre aussi ce lecteur sans redémarrer la musique.
+- **Paramètres** : minuteur, occupation locale, état hors ligne, export du catalogue, mise à jour et aide.
 
-- Accueil par défaut : carte automatique **Toutes les musiques** + toutes tes playlists personnelles.
-- La collection Toutes les musiques suit les imports et suppressions automatiquement. Elle n’est pas supprimable ou renommable, les playlists personnelles le sont.
-- Ouvre une playlist et touche sa pochette pour sélectionner une image depuis ton appareil. Les images sont réduites et conservées localement.
-- Bouton **Ajouter des morceaux** dans chaque playlist : recherche et sélection multiple, sans devoir ouvrir les options de chaque morceau. Décocher un titre le retire de la playlist, pas de la bibliothèque.
-- Onglet Recherche dans tous les titres, artistes et albums importés, sans tenir compte des accents. L’app ne peut pas parcourir tous les fichiers de l’iPhone sans que tu les importes.
-- Mélange Fisher–Yates avec `crypto.getRandomValues` et tirage sans biais de modulo : chaque morceau une fois par passage. Si toute la file est répétée, un nouvel ordre est créé et le dernier morceau n’est pas immédiatement répété. Un ordre identique peut néanmoins se reproduire par hasard.
-- Minuteur 15/30/60 minutes : pause à l’échéance tant que le navigateur exécute les événements. Une suspension iOS peut retarder son déclenchement. Il est réinitialisé lorsque l’app est fermée.
-- Export individuel du fichier audio original via les options d’un morceau. Sur iPhone, l’enregistrement dépend de la présentation du téléchargement par Safari.
-- Recherche rapide depuis l’accueil, favoris, file et reprise conservés.
+L’artiste est lu dans les tags compatibles. Sans artiste, le début d’un titre de forme `Artiste - Morceau` est utilisé pour l’affichage. Cette déduction peut être imparfaite ; les informations restent modifiables. Sinon, le texte affiché est « le son lé en 🧨 ». Aucun fichier musical n’est réécrit.
 
-### Logo et nom de l’icône iPhone
+Le mélange utilise Fisher–Yates et le générateur cryptographique du navigateur. Un morceau apparaît une fois par passage ; la répétition de la file remélange et évite une répétition immédiate à la jonction.
 
-L’image jointe (alien noir avec casque, fond blanc) est intégrée telle quelle. Le site a un thème noir ; le fond blanc fait partie du logo fourni. Le nom et le logo de l’app sont déclarés dans le manifeste. iOS peut garder l’ancien nom ou l’ancienne icône pour un raccourci déjà ajouté : cela ne signifie pas que le site n’est pas à jour. **Ne supprime pas tes données pour forcer ce changement** ; vérifie d’abord la nouvelle interface dans l’app existante.
+## Logo iPhone
 
-## Ce qui est développé
+Le logo alien fourni est conservé sans modification. `apple-touch-icon.png` le déclare pour l’écran d’accueil, et `icon.png` pour le manifeste. Lors d’un nouvel ajout depuis Safari → Partager → Sur l’écran d’accueil, vérifier l’aperçu du logo. Une icône déjà installée peut conserver son ancienne image : ne pas effacer les données ni supprimer l’installation utilisée pour forcer un changement. Safari et une application installée peuvent avoir des bibliothèques distinctes.
 
-- Interface noire et blanche, nom Loan's Music et logo alien fourni, conservé sans modification.
-- Titres, artistes, albums, playlists, favoris ; recherche et tri.
-- Groupes d’albums par artiste + album pour éviter de fusionner les homonymes.
-- Playlists persistantes : créer, renommer, supprimer ; ajouter / retirer / déplacer les titres.
-- Informations éditables : titre, artiste et album ; les fichiers originaux ne sont pas réécrits.
-- Lecture automatique de tags ID3 v2.3/v2.4 courants pour MP3, et tags iTunes pour M4A/MP4 : titre, artiste, album, pochette si compatible.
-- Lecture de la durée à l’import lorsque Safari arrive à lire les métadonnées en six secondes, sinon lors de la lecture.
-- Pochettes personnalisées JPEG/PNG/WebP, redimensionnées localement à 600 px ; maximum 8 Mo avant traitement.
-- Pour les morceaux importés dans la V0.1 : bouton « Relire les tags du fichier » dans leurs options, puis Enregistrer.
-- Mini-lecteur, écran complet, progression, favoris, aléatoire et répétition.
-- File modifiable : monter/descendre, retirer un titre, lire ensuite, ajouter à la fin, vider les suivants. Chaque titre apparaît au plus une fois dans la file.
-- Récemment écoutés, restauration de la file et de la position sans démarrage automatique.
-- Suppression d’un morceau et de ses références aux playlists dans une même transaction.
-- Export JSON du catalogue (informations et playlists, sans fichiers audio ni pochettes). Pas encore de restauration de cet export.
-- Mode hors ligne et Media Session pour les commandes que le navigateur prend en charge.
+## Fichiers
 
-## Limites à connaître
+- `index.html` : écrans, panneaux et configuration iPhone.
+- `style.css` : interface, menu fixe, mini-lecteur et lecteur plein écran.
+- `player.js` : IndexedDB, import, audio, contrôles multimédia.
+- `metadata.js` : lecture locale des tags et des pochettes compatibles.
+- `app.js` : navigation, recherche, playlists, sélection multiple et paramètres.
+- `sw.js` : cache hors ligne de l’interface, version 4.
+- `manifest.webmanifest` : identité de l’application installable.
+- `icon.png` et `apple-touch-icon.png` : logo fourni.
 
-- Ce n’est pas une application native iOS. La lecture écran verrouillé, les commandes et les transitions doivent être testées sur le vrai iPhone.
-- Les MP4 restent entiers. Cette version ne convertit pas les vidéos en audio et ne réduit pas leur taille.
-- Import depuis Fichiers dans l’app ; pas d’extension de réception dans le menu Partager iOS.
-- Pas de conversion universelle des codecs ni de gapless garanti.
-- Tags ID3 v2.2, frames compressées / chiffrées et certaines variantes de métadonnées non prises en charge. Lecture bornée à 8 Mo pour les tags ; possibilité de renseigner les informations manuellement.
-- Formats non compatibles : un fichier peut être ajouté mais échouer à la lecture, avec message d’erreur.
-- Les pochettes ont leur propre coût de stockage, non inclus dans le compteur du poids des fichiers audio.
-- L’export de catalogue n’est PAS une sauvegarde de tes musiques.
-- Effacer les données du site, changer de domaine, ou certaines contraintes de stockage peuvent rendre les fichiers locaux indisponibles. Garde les originaux. Safari et l’app installée peuvent avoir des stockages distincts.
-- Doublons détectés seulement par nom, taille et date du fichier.
+## Vérification et limites
 
-## Essais conseillés après mise à jour
+Vérifié : syntaxe JavaScript, cohérence des identifiants HTML, logique dans un DOM simulé (recherche, ajout multiple avec filtrage, conservation et relecture des playlists, retrait multiple, création, pochettes, navigation, artiste de remplacement), permutations aléatoires, conservation du schéma de base, cache hors ligne et isolation de son nettoyage. Pas de test visuel dans Safari ni sur un iPhone réel dans l’environnement de développement.
 
-0. Vérifier l’accueil Loan's Music noir, la carte Toutes les musiques, le logo, puis créer une playlist, toucher sa photo et ajouter plusieurs titres. Tester la recherche « ete » pour un titre « Été ».
+À vérifier après déploiement : lecteur sans débordement sur l’iPhone, navigation fixe, ajout de deux sons dans une playlist, fermeture/réouverture, lecture écran verrouillé, puis mode avion.
 
-
-1. Vérifier que les imports et favoris V0.1 sont toujours présents.
-2. Importer un MP3 avec tags et un M4A ; contrôler titre/artiste/album/pochette/durée.
-3. Créer une playlist, ajouter deux titres avec ⋯, changer leur ordre et la renommer.
-4. Fermer puis rouvrir : contrôler la playlist, les morceaux, la file et la position.
-5. Tester l’ordre de la file, « Lire ensuite », la répétition, les favoris et une pochette manuelle.
-6. Vérifier lecture + transition au suivant écran verrouillé, les AirPods et le mode avion.
-7. Supprimer une playlist de test : ses morceaux doivent rester dans Titres.
-8. Supprimer un morceau de test : ses références doivent disparaître des playlists.
-
-## Vérifications réalisées ici
-
-- Syntaxe JavaScript et structure des fichiers.
-- Tests de tags synthétiques MP3/M4A, tags invalides.
-- Tests dans un DOM simulé : recherche, regroupements, playlists, édition, file et migration des stores existants.
-- Tests du cache hors ligne dans un environnement simulé.
-- V0.3 : tests d’accueil, recherche avec accents, conservation des pochettes, collection automatique et 500 permutations sans doublons ; chaque ordre possible de trois titres a été observé. Ces tests ne constituent pas une preuve statistique générale.
-
-Pas de test dans un navigateur graphique, dans Safari ni sur iPhone dans cet environnement. Ces vérifications ne remplacent pas les essais réels ci-dessus. Les fichiers ont été préparés, pas publiés dans ton dépôt automatiquement.
-
-## Organisation du code
-
-| Fichier | Rôle |
-| --- | --- |
-| index.html | Structure des écrans et styles de base |
-| style.css | Interface noire de Loan's Music |
-| player.js | Stockage, import, moteur audio et commandes système |
-| metadata.js | Lecture de tags et réduction des pochettes |
-| app.js | Bibliothèque, playlists, file et restauration de session |
-| sw.js | Cache des fichiers de l’interface, version v3 |
-| manifest.webmanifest | Installation comme web app |
-| icon.png | Icône |
-
-Pour chaque future modification du code, incrémenter la version du cache dans sw.js. Garder le nom de la base IndexedDB et prévoir une migration lors d’un changement de schéma.
+La continuité de lecture en arrière-plan dépend de Safari/iOS. MP4 : le fichier entier reste stocké, sans extraction audio. Import par le sélecteur Fichiers, pas de réception par une extension Partager. Les tags non reconnus se modifient à la main. L’export du catalogue contient les informations et les playlists, sans audio ni pochettes, et ne constitue pas une sauvegarde restaurable. L’arrêt par minuteur peut être retardé si iOS suspend la page. Les données locales peuvent être effacées par l’utilisateur ou le navigateur.
