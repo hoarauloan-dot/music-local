@@ -518,3 +518,18 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
 
   settings.append(button, output);
 })();
+/* Identifier l’ouverture depuis l’icône de l’application */
+(() => {
+  const mode = matchMedia('(display-mode: standalone)');
+
+  function updateInstalledMode() {
+    document.documentElement.classList.toggle(
+      'loan-installed',
+      navigator.standalone === true || mode.matches
+    );
+  }
+
+  updateInstalledMode();
+  window.addEventListener('pageshow', updateInstalledMode);
+  mode.addEventListener('change', updateInstalledMode);
+})();
