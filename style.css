@@ -162,3 +162,11 @@ main {
   bottom: auto;
   transform: translateY(-100%);
 }
+/* Hauteur adaptée au téléphone, en mode installé */
+html.loan-installed body {
+  height: 100lvh !important;
+}
+
+#settings-dialog .storage::after {
+  content: "Interface 0.4.7 chargée";
+}
