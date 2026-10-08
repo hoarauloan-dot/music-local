@@ -54,18 +54,77 @@ body:has(dialog[open]) main { overflow: hidden; }
   background: transparent;
   font-size: 24px;
 }
-/* Correctif 0.4.3 — menu inférieur plus compact */
+/* Correctif 0.4.4 — disposition verticale de l’application */
 :root {
   --nav-height: 54px;
-  --app-height: 100dvh;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  height: var(--app-height);
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
 }
 
+/* Seul le contenu central défile */
 main {
-  height: 100%;
+  order: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Mini-lecteur placé entre le contenu et le menu */
+.mini {
+  position: relative;
+  inset: auto;
+  order: 1;
+  flex: 0 0 auto;
+  width: calc(100% - 16px);
+  max-width: 980px;
+  margin: 0 auto 6px;
+  transform: none;
+}
+
+/* Menu en bas, sans calcul de sa position */
+#tabs {
+  position: relative;
+  inset: auto;
+  order: 2;
+  flex: 0 0 auto;
+  width: 100%;
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  margin: 0;
+  padding: 4px 8px calc(4px + var(--safe-bottom));
+  box-sizing: border-box;
+}
+
+#tabs button {
+  min-height: 44px;
+  padding: 6px 4px;
+}
+
+/* Repère pour vérifier que ce CSS est chargé */
+#settings-dialog .storage::after {
+  content: "Interface 0.4.4 chargée";
+  display: block;
+  margin-top: 10px;
+  color: #aaa;
+  font-size: 12px;
 }
 
 /* Menu aligné sur le bas de la fenêtre */
