@@ -314,3 +314,149 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
     previousNext(automatic);
   };
 })();
+// Correctif Bluetooth 0.4.2 — ajouter après le correctif 0.4.1.
+(() => {
+  if (window.loanBluetooth042) return;
+  window.loanBluetooth042 = true;
+  audio.preload = 'auto';
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  } catch {}
+
+  let pending = null;
+  let playWanted = false;
+
+  function cancelPending() {
+    playWanted = false;
+    if (pending) audio.removeEventListener('canplay', pending.onReady);
+    pending = null;
+  }
+
+  function refreshPlayback() {
+    syncUI();
+    updateMedia();
+  }
+
+  function requestPlay(request) {
+    if (!playWanted || pending !== request || request.token !== selectionToken) return;
+    const attempt = ++request.attempts;
+    const failed = error => {
+      if (pending !== request || request.token !== selectionToken || request.attempts !== attempt) return;
+      // Un changement de source peut interrompre une tentative précédente.
+      if (error.name === 'AbortError' && request.attempts < 2) {
+        if (audio.readyState >= 3) requestPlay(request);
+        return;
+      }
+      cancelPending();
+      refreshPlayback();
+      notify(error.name === 'NotAllowedError'
+        ? 'iOS a bloqué le démarrage. Appuie sur Lecture pour reprendre.'
+        : 'Lecture impossible : ' + error.message, true);
+    };
+    try {
+      Promise.resolve(audio.play()).then(() => {
+        if (pending !== request || request.token !== selectionToken) return;
+        audio.removeEventListener('canplay', request.onReady);
+        pending = null;
+        refreshPlayback();
+        saveSession();
+      }, failed);
+    } catch (error) { failed(error); }
+  }
+
+  function playCurrent() {
+    if (!currentId || !activeURL) return;
+    cancelPending();
+    playWanted = true;
+    if (audio.ended) audio.currentTime = 0;
+    const request = {token: selectionToken, attempts: 0, onReady: null};
+    request.onReady = () => {
+      if (pending === request && request.attempts < 2) requestPlay(request);
+    };
+    pending = request;
+    audio.addEventListener('canplay', request.onReady);
+    requestPlay(request);
+  }
+
+  function pauseCurrent() {
+    ++selectionToken; // Annule aussi une lecture IndexedDB encore en attente.
+    cancelPending();
+    audio.pause();
+    refreshPlayback();
+    saveSession();
+  }
+
+  selectTrack = async id => {
+    if (!trackById(id)) return;
+    cancelPending();
+    playWanted = true;
+    const token = ++selectionToken;
+    let url;
+    try {
+      // Si le suivant est prêt, aucun await avant audio.play().
+      if (prepared?.id === id) {
+        url = prepared.url;
+        prepared = null;
+      } else {
+        const file = await read('files', id);
+        if (token !== selectionToken || !playWanted) return;
+        if (!file) throw Error('Fichier local introuvable. Réimporte ce son.');
+        url = URL.createObjectURL(file);
+      }
+      if (token !== selectionToken || !playWanted) {
+        URL.revokeObjectURL(url);
+        return;
+      }
+      const oldURL = activeURL;
+      activeURL = url;
+      currentId = id;
+      // Changer src déclenche le chargement : pas de pause()/load() supplémentaire.
+      audio.src = url;
+      playCurrent();
+      if (oldURL && oldURL !== url) URL.revokeObjectURL(oldURL);
+      prepareNext();
+      if (!document.hidden) render();
+      else refreshPlayback();
+    } catch (error) {
+      if (token !== selectionToken) return;
+      cancelPending();
+      refreshPlayback();
+      notify('Lecture impossible : ' + error.message, true);
+    }
+  };
+
+  const previousStop = stop;
+  stop = () => { cancelPending(); previousStop(); };
+  togglePlay = () => {
+    if (playWanted || !audio.paused) pauseCurrent();
+    else playCurrent();
+  };
+  $('mini-play').onclick = $('play').onclick = togglePlay;
+
+  // Une interruption réelle prime sur toute tentative de démarrage.
+  audio.addEventListener('pause', () => {
+    if (audio.paused) {
+      ++selectionToken;
+      cancelPending();
+    }
+  });
+  audio.addEventListener('error', cancelPending);
+
+  if (navigator.mediaSession) {
+    for (const [name, handler] of Object.entries({
+      play: playCurrent,
+      pause: pauseCurrent,
+      nexttrack: () => next(),
+      previoustrack: () => previous(),
+      stop: () => {
+        const button = $('mini-stop');
+        if (button) button.click();
+        else { stop(); render(); saveSession(); }
+      }
+    })) {
+      try { navigator.mediaSession.setActionHandler(name, handler); } catch {}
+    }
+  }
+  $('settings-dialog').append(node('p', 'hint', 'Correctif Bluetooth 0.4.2 actif'));
+  // Aucune relance automatique au déverrouillage ou au retour dans l’app.
+})();
