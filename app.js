@@ -460,3 +460,61 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
   $('settings-dialog').append(node('p', 'hint', 'Correctif Bluetooth 0.4.2 actif'));
   // Aucune relance automatique au déverrouillage ou au retour dans l’app.
 })();
+/* Diagnostic de l’affichage sur iPhone */
+(() => {
+  const settings = document.getElementById('settings-dialog');
+  if (!settings || document.getElementById('screen-diagnostic')) return;
+
+  const button = document.createElement('button');
+  button.id = 'screen-diagnostic';
+  button.textContent = 'Mesurer l’écran';
+  button.style.cssText = 'display:block;width:100%;margin-top:16px';
+
+  const output = document.createElement('pre');
+  output.style.cssText =
+    'white-space:pre-wrap;font-size:12px;line-height:1.6';
+
+  button.onclick = () => {
+    const body = document.body;
+    const tabs = document.getElementById('tabs');
+    const main = document.querySelector('main');
+    const viewport = window.visualViewport;
+    const box = element => {
+      const r = element.getBoundingClientRect();
+      return `haut ${Math.round(r.top)}, bas ${Math.round(r.bottom)}, hauteur ${Math.round(r.height)}`;
+    };
+
+    const probe = document.createElement('div');
+    probe.style.cssText =
+      'position:absolute;visibility:hidden;height:100dvh;' +
+      'padding-bottom:env(safe-area-inset-bottom);pointer-events:none';
+    body.appendChild(probe);
+    const dvh = probe.getBoundingClientRect().height;
+    const safe = getComputedStyle(probe).paddingBottom;
+    probe.style.height = '100lvh';
+    const lvh = probe.getBoundingClientRect().height;
+    probe.remove();
+
+    output.textContent = [
+      'Diagnostic écran 1',
+      `Mode installé : ${
+        navigator.standalone === true ||
+        matchMedia('(display-mode: standalone)').matches
+      }`,
+      `Écran : ${screen.width} × ${screen.height}`,
+      `Fenêtre : ${innerWidth} × ${innerHeight}`,
+      `Zone visible : ${viewport ? Math.round(viewport.height) : '?'}`,
+      `Décalage visible : ${viewport ? Math.round(viewport.offsetTop) : '?'}`,
+      `Zoom : ${viewport ? viewport.scale : '?'}`,
+      `100dvh : ${Math.round(dvh)}`,
+      `100lvh : ${Math.round(lvh)}`,
+      `Protection du bas : ${safe}`,
+      `Page : ${box(body)}`,
+      `Contenu : ${box(main)}`,
+      `Menu : ${box(tabs)}`,
+      `Position menu : ${getComputedStyle(tabs).position}`
+    ].join('\n');
+  };
+
+  settings.append(button, output);
+})();
