@@ -2,7 +2,7 @@
 // Cache limité à cette application : ne touche pas aux autres sites du compte GitHub.
 const BASE = new URL('./', self.location.href).href;
 const PREFIX = 'music-local:' + BASE + ':';
-const CACHE = PREFIX + 'v4.5';
+const CACHE = PREFIX + 'v4.6-diagnostic';
 const ASSETS = ['index.html', 'manifest.webmanifest', 'icon.png?v=4', 'apple-touch-icon.png', 'style.css', 'metadata.js', 'player.js', 'app.js'].map(path => new URL(path, BASE).href);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
