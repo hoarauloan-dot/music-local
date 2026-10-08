@@ -54,3 +54,42 @@ body:has(dialog[open]) main { overflow: hidden; }
   background: transparent;
   font-size: 24px;
 }
+/* Correctif 0.4.3 — menu inférieur plus compact */
+:root {
+  --nav-height: 54px;
+  --app-height: 100dvh;
+}
+
+body {
+  height: var(--app-height);
+}
+
+main {
+  height: 100%;
+}
+
+/* Menu aligné sur le bas de la fenêtre */
+#tabs {
+  top: calc(
+    var(--app-height) - var(--nav-height) - var(--safe-bottom)
+  );
+  bottom: auto;
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  margin: 0;
+  padding: 4px 8px calc(4px + var(--safe-bottom));
+  box-sizing: border-box;
+}
+
+#tabs button {
+  min-height: 44px;
+  padding: 6px 4px;
+}
+
+/* Le mini-lecteur reste juste au-dessus du menu */
+.mini {
+  top: calc(
+    var(--app-height) - var(--nav-height) - var(--safe-bottom)
+  );
+  bottom: auto;
+  transform: translateY(-100%);
+}
