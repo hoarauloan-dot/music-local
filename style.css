@@ -170,3 +170,22 @@ html.loan-installed body {
 #settings-dialog .storage::after {
   content: "Interface 0.4.7 chargée";
 }
+/* 0.4.8 — mini-lecteur juste au-dessus du menu */
+body > #mini {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  translate: none !important;
+
+  order: 1;
+  flex: 0 0 auto;
+  align-self: center;
+
+  width: calc(100% - 16px);
+  max-width: 980px;
+  margin: 0 0 6px !important;
+}
+
+#settings-dialog .storage::after {
+  content: "Interface 0.4.8 chargée";
+}
