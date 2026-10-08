@@ -35,6 +35,16 @@ html, body {
   overflow: hidden;
 }
 body {
+  /* 0.4.5 — pleine hauteur en mode application installée */
+@media (display-mode: standalone) {
+  body {
+    height: 100lvh;
+  }
+}
+
+#settings-dialog .storage::after {
+  content: "Interface 0.4.5 chargée";
+}
   position: fixed;
   inset: 0;
 }
