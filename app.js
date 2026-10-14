@@ -533,3 +533,68 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
   window.addEventListener('pageshow', updateInstalledMode);
   mode.addEventListener('change', updateInstalledMode);
 })();
+/* Volume indépendant — affiché sur ordinateur */
+(() => {
+  const audio = document.getElementById('audio');
+  const mini = document.getElementById('mini');
+  if (!audio || !mini || document.getElementById('loan-volume')) return;
+
+  const desktop = matchMedia('(hover: hover) and (pointer: fine)');
+  const storageKey = 'loan-music-volume';
+
+  const row = document.createElement('div');
+  row.className = 'loan-volume-row';
+
+  const label = document.createElement('label');
+  label.htmlFor = 'loan-volume';
+  label.textContent = 'Volume';
+
+  const slider = document.createElement('input');
+  slider.id = 'loan-volume';
+  slider.type = 'range';
+  slider.min = '0';
+  slider.max = '100';
+  slider.step = '1';
+
+  const value = document.createElement('span');
+  value.className = 'loan-volume-value';
+
+  row.append(label, slider, value);
+  mini.appendChild(row);
+
+  function displayVolume() {
+    const percent = Math.round(audio.volume * 100);
+    slider.value = String(percent);
+    slider.setAttribute('aria-valuetext', `${percent} %`);
+    value.textContent = `${percent} %`;
+  }
+
+  // Restaure le réglage uniquement sur ordinateur.
+  if (desktop.matches) {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      const volume = Number(saved);
+      if (
+        saved !== null &&
+        Number.isFinite(volume) &&
+        volume >= 0 &&
+        volume <= 1
+      ) {
+        audio.volume = volume;
+      }
+    } catch {
+      // Le lecteur reste utilisable si le stockage est indisponible.
+    }
+  }
+
+  slider.addEventListener('input', () => {
+    audio.volume = Number(slider.value) / 100;
+    try {
+      localStorage.setItem(storageKey, String(audio.volume));
+    } catch {}
+    displayVolume();
+  });
+
+  audio.addEventListener('volumechange', displayVolume);
+  displayVolume();
+})();
