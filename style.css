@@ -231,3 +231,107 @@ body > #mini {
 #settings-dialog .storage::after {
   content: "Interface 0.4.9 chargée";
 }
+/* 0.5.0 — Onglet YouTube */
+#tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#tabs button {
+  font-size: 12px;
+  min-width: 0;
+}
+
+.youtube-panel {
+  padding: 24px 0;
+}
+
+.youtube-search {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.youtube-search input,
+.youtube-panel details input {
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  color: #fff;
+  background: #191919;
+  border: 1px solid #333;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.youtube-search input {
+  flex: 1;
+}
+
+.youtube-panel details input {
+  display: block;
+  margin: 14px 0;
+}
+
+.youtube-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #292929;
+}
+
+.youtube-card > img {
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.youtube-card-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.youtube-card-text > b,
+.youtube-card-text > small {
+  display: block;
+}
+
+.youtube-card-text > small {
+  margin-top: 6px;
+  color: #aaa;
+}
+
+.youtube-card .actions {
+  margin-top: 10px;
+}
+
+.youtube-card .actions button,
+.youtube-open {
+  font-size: 12px;
+  min-height: 44px;
+  padding: 10px;
+}
+
+.youtube-open {
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+}
+
+@media (max-width: 380px) {
+  .youtube-card {
+    flex-direction: column;
+  }
+
+  .youtube-card > img {
+    width: 100%;
+    max-width: 240px;
+  }
+}
+
+#settings-dialog .storage::after {
+  content: "Interface 0.5.0 chargée";
+}
