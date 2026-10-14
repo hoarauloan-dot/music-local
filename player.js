@@ -108,10 +108,32 @@ $('files').onchange=async()=>{
   for(let i=0;i<files.length;i++) {
    const file=files[i]; $('import-progress').textContent=`Import ${i+1}/${files.length} : ${file.name}`;
    const ext=file.name.split('.').pop().toLowerCase();
-   if(!['mp3','m4a','wav','mp4'].includes(ext) || !file.size) {failures.push(file.name+' : format ou fichier invalide.');continue;}
+   const allowedExtensions = [
+  'mp3', 'mpeg', 'mpg', 'm4a', 'wav', 'wave',
+  'mp4', 'aac', 'flac', 'ogg', 'oga', 'opus', 'webm'
+];
+
+if (!allowedExtensions.includes(ext) || !file.size) {
+  failures.push(file.name + ' : extension non acceptée ou fichier vide.');
+  continue;
+}
    if(tracks.some(t=>t.sourceName===file.name && t.size===file.size && t.modified===file.lastModified)){duplicates++;continue;}
    const track={id:crypto.randomUUID(),title:file.name.replace(/\.[^.]+$/,''),artist:'Artiste inconnu',sourceName:file.name,size:file.size,modified:file.lastModified,ext,favorite:false};
-   try{const tags=await MusicMetadata.read(file); Object.assign(track,tags); track.importedAt=Date.now(); const types={mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',mp4:'video/mp4'};await writeTrack(track,file.slice(0,file.size,file.type||types[ext]));tracks.push(track);added++;}
+   try{const tags=await MusicMetadata.read(file); Object.assign(track,tags); track.importedAt=Date.now(); const types = {
+  mp3: 'audio/mpeg',
+  mpeg: 'video/mpeg',
+  mpg: 'video/mpeg',
+  m4a: 'audio/mp4',
+  wav: 'audio/wav',
+  wave: 'audio/wav',
+  mp4: 'video/mp4',
+  aac: 'audio/aac',
+  flac: 'audio/flac',
+  ogg: 'audio/ogg',
+  oga: 'audio/ogg',
+  opus: 'audio/ogg',
+  webm: 'video/webm'
+};await writeTrack(track,file.slice(0,file.size,file.type||types[ext]));tracks.push(track);added++;}
    catch(error){failures.push(file.name+' : '+(error.name==='QuotaExceededError'?'espace de stockage insuffisant.':error.message));break;}
   }
   render(); notify(`${added} morceau(s) importé(s). ${duplicates?duplicates+' fichier(s) déjà présent(s).':''}${failures.length?'\n'+failures.join('\n'):''}`,failures.length>0);
