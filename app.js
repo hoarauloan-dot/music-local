@@ -598,3 +598,224 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
   audio.addEventListener('volumechange', displayVolume);
   displayVolume();
 })();
+/* 0.5.0 — Recherche YouTube */
+(() => {
+  if (document.getElementById('youtube-panel')) return;
+
+  const panel = node('section', 'youtube-panel');
+  panel.id = 'youtube-panel';
+  panel.hidden = true;
+
+  const title = node('h2', '', 'YouTube');
+  const intro = node(
+    'p', 'hint',
+    'Recherche une vidéo, puis partage son lien vers Loan’s Import.'
+  );
+
+  // Configuration enregistrée uniquement dans ce navigateur.
+  const config = node('details');
+  const summary = node('summary', '', 'Configurer la recherche');
+  const keyInput = node('input');
+  keyInput.type = 'password';
+  keyInput.placeholder = 'Clé YouTube Data API';
+  keyInput.autocomplete = 'off';
+  keyInput.setAttribute('aria-label', 'Clé YouTube Data API');
+
+  const keyName = 'loan-youtube-api-key';
+  try {
+    keyInput.value = localStorage.getItem(keyName) || '';
+  } catch {}
+
+  const configStatus = node('p', 'hint');
+  const saveKey = action('Enregistrer la clé', () => {
+    try {
+      const key = keyInput.value.trim();
+      if (key) localStorage.setItem(keyName, key);
+      else localStorage.removeItem(keyName);
+      configStatus.textContent = key
+        ? 'Clé enregistrée sur cet appareil.'
+        : 'Clé supprimée de cet appareil.';
+    } catch {
+      configStatus.textContent =
+        'Stockage indisponible. La clé reste utilisable pour cette session.';
+    }
+  });
+
+  config.append(summary, keyInput, saveKey, configStatus);
+  config.open = !keyInput.value;
+
+  const form = node('form', 'youtube-search');
+  const input = node('input');
+  input.type = 'search';
+  input.placeholder = 'Rechercher sur YouTube…';
+  input.required = true;
+  input.maxLength = 150;
+  input.setAttribute('aria-label', 'Rechercher sur YouTube');
+
+  const submit = node('button', 'primary', 'Chercher');
+  submit.type = 'submit';
+  form.append(input, submit);
+
+  const status = node('p', 'hint');
+  status.setAttribute('role', 'status');
+  const results = node('div', 'youtube-results');
+
+  panel.append(title, intro, form, status, results, config);
+  document.querySelector('main').append(panel);
+
+  function decodeTitle(value) {
+    const documentText = new DOMParser().parseFromString(
+      String(value || ''), 'text/html'
+    );
+    return documentText.documentElement.textContent || '';
+  }
+
+  function videoCard(item) {
+    const id = item.id?.videoId;
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id || '')) return null;
+
+    const info = item.snippet || {};
+    const videoTitle = decodeTitle(info.title);
+    const url = 'https://www.youtube.com/watch?v=' + id;
+    const card = node('article', 'youtube-card');
+
+    const image = node('img');
+    image.src = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
+    image.alt = '';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+
+    const text = node('div', 'youtube-card-text');
+    text.append(
+      node('b', '', videoTitle),
+      node('small', '', decodeTitle(info.channelTitle))
+    );
+
+    const buttons = node('div', 'actions');
+    const open = node('a', 'youtube-open', 'Voir sur YouTube');
+    open.href = url;
+    open.target = '_blank';
+    open.rel = 'noopener noreferrer';
+
+    const share = action('Partager le lien', async () => {
+      if (navigator.share) {
+        try {
+          // URL seule pour le raccourci Loan’s Import.
+          await navigator.share({ url });
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            status.textContent =
+              'Partage indisponible. Utilise « Copier le lien ».';
+          }
+        }
+      } else {
+        status.textContent = 'Utilise « Copier le lien » sur cet appareil.';
+      }
+    });
+
+    const copy = action('Copier le lien', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = 'Lien copié.';
+      } catch {
+        window.prompt('Copie ce lien :', url);
+      }
+    });
+
+    buttons.append(open, share, copy);
+    text.append(buttons);
+    card.append(image, text);
+    return card;
+  }
+
+  form.onsubmit = async event => {
+    event.preventDefault();
+    const query = input.value.trim();
+    const key = keyInput.value.trim();
+
+    if (!query || submit.disabled) return;
+    if (!key) {
+      config.open = true;
+      keyInput.focus();
+      status.textContent = 'Ajoute d’abord ta clé dans la configuration.';
+      return;
+    }
+    if (!navigator.onLine) {
+      status.textContent = 'Connecte-toi à Internet pour rechercher.';
+      return;
+    }
+
+    submit.disabled = true;
+    results.replaceChildren();
+    status.textContent = 'Recherche en cours…';
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const url = new URL('https://www.googleapis.com/youtube/v3/search');
+      url.search = new URLSearchParams({
+        part: 'snippet',
+        type: 'video',
+        maxResults: '10',
+        q: query,
+        key
+      }).toString();
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        credentials: 'omit',
+        cache: 'no-store',
+        referrerPolicy: 'strict-origin-when-cross-origin'
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const reason = data.error?.errors?.[0]?.reason || '';
+        throw new Error(
+          /quota|dailyLimit/i.test(reason)
+            ? 'Quota YouTube atteint. Réessaie demain.'
+            : 'Recherche refusée : vérifie la clé, ses restrictions et l’activation de YouTube Data API v3.'
+        );
+      }
+
+      for (const item of data.items || []) {
+        const card = videoCard(item);
+        if (card) results.append(card);
+      }
+      status.textContent = results.children.length
+        ? 'Résultats YouTube · Choisis « Partager le lien », puis Loan’s Import.'
+        : 'Aucun résultat.';
+    } catch (error) {
+      status.textContent = error.name === 'AbortError'
+        ? 'La recherche a pris trop de temps. Réessaie.'
+        : error instanceof TypeError
+          ? 'Connexion à YouTube impossible. Vérifie Internet et la configuration du site.'
+          : error.message;
+    } finally {
+      clearTimeout(timeout);
+      submit.disabled = false;
+    }
+  };
+
+  const previousRender = render;
+  render = () => {
+    previousRender();
+    const active = tab === 'youtube';
+
+    const button = action(
+      'YouTube',
+      () => setTab('youtube'),
+      active ? 'selected' : ''
+    );
+    button.setAttribute('aria-current', active ? 'page' : 'false');
+    $('tabs').append(button);
+
+    panel.hidden = !active;
+    $('tracks').hidden = active;
+    $('collection-actions').hidden = active;
+    document.querySelector('.library-head').hidden = active;
+  };
+
+  render();
+})();
