@@ -21,7 +21,19 @@
 <body>
 <main>
 <header><div class="brand"><img src="./icon.png?v=4" alt="Logo alien avec casque"><span>Loan's Music</span></div><button id="settings-button" aria-label="Paramètres">⚙</button></header>
-<section class="hero"><button class="primary" id="import">＋ Importer des sons</button><input id="files" type="file" multiple accept=".mp3,.m4a,.wav,.mp4,audio/mpeg,audio/mp4,audio/wav,video/mp4" hidden><div id="import-progress" role="status"></div></section>
+<section class="hero">
+  <button class="primary" id="import">＋ Importer des sons</button>
+
+  <input
+    id="files"
+    type="file"
+    multiple
+    accept=".mp3,.mpeg,.mpg,.m4a,.wav,.wave,.mp4,.aac,.flac,.ogg,.oga,.opus,.webm,audio/*,video/mp4,video/mpeg,video/webm"
+    hidden
+  >
+
+  <div id="import-progress" role="status"></div>
+</section>
 <div id="notice" role="status" hidden></div>
 <section id="playlist-hero" hidden></section><div id="recent-section"></div><div id="home-filters" aria-label="Bibliothèque"></div><div class="tools" id="search-tools"><input id="search" type="search" placeholder="Rechercher dans mes morceaux importés…" aria-label="Rechercher dans la bibliothèque"><button id="favorites" aria-pressed="false" aria-label="Afficher les favoris">♡</button></div>
 <div class="library-head"><div><button id="back" hidden>← Retour</button><h2 id="section-title">Tous les titres</h2><span id="count">0 titre</span></div><select id="sort" aria-label="Trier les titres"><option value="recent">Ajouts récents</option><option value="title">Titre A–Z</option><option value="artist">Artiste A–Z</option></select></div><div id="collection-actions" class="actions"></div>
