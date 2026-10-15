@@ -100,8 +100,13 @@ $('edit-form').onsubmit=async event=>{event.preventDefault(); const title=$('edi
 $('favorite-track').onclick=async()=>{const track={...trackById(editingId)};track.favorite=!track.favorite;try{await writeTrack(track);tracks=tracks.map(t=>t.id===track.id?track:t);$('editor').close();render();}catch{notify('Favori non enregistré.',true);} };
 $('delete-track').onclick=async()=>{const t=trackById(editingId);if(!confirm('Supprimer « '+t.title+' » du lecteur ? Ton fichier original sera conservé.'))return;try{await writeTrack(t,null,true);if(t.id===currentId)stop();tracks=tracks.filter(x=>x.id!==t.id);queue=queue.filter(x=>x!==t.id);originalQueue=originalQueue.filter(x=>x!==t.id);prepareNext();$('editor').close();render();}catch{notify('Suppression impossible.',true);} };
 $('import').onclick=()=>$('files').click();
-$('files').onchange=async()=>{
- const files=[...$('files').files]; if(!files.length)return; $('import').disabled=true;
+let loanImportBusy = false;
+async function importMusicFiles(input) {
+ const files = Array.from(input);
+ if (loanImportBusy) return {busy:true, added:0, duplicates:0, failures:[]};
+ if (!files.length) return {busy:false, added:0, duplicates:0, failures:[]};
+ loanImportBusy = true;
+ $('import').disabled = true;
  const failures=[]; let added=0,duplicates=0;
  try{
   if(navigator.storage?.persist)navigator.storage.persist().catch(()=>false);
@@ -137,7 +142,15 @@ if (!allowedExtensions.includes(ext) || !file.size) {
    catch(error){failures.push(file.name+' : '+(error.name==='QuotaExceededError'?'espace de stockage insuffisant.':error.message));break;}
   }
   render(); notify(`${added} morceau(s) importé(s). ${duplicates?duplicates+' fichier(s) déjà présent(s).':''}${failures.length?'\n'+failures.join('\n'):''}`,failures.length>0);
- }finally{$('files').value='';$('import-progress').textContent='';$('import').disabled=false;}
+  return {busy:false, added, duplicates, failures};
+ }finally{loanImportBusy=false;$('import-progress').textContent='';$('import').disabled=false;}
+}
+$('files').onchange = async () => {
+ try {
+  const result = await importMusicFiles($('files').files);
+  if (result.busy) notify('Un import est déjà en cours. Réessaie dans un instant.');
+ } catch (error) { notify('Import impossible : ' + error.message, true); }
+ finally { $('files').value = ''; }
 };
 $('search').oninput=render;
 $('favorites').onclick=()=>{favoriteFilter=!favoriteFilter;$('favorites').setAttribute('aria-pressed',String(favoriteFilter));$('favorites').textContent=favoriteFilter?'♥':'♡';render();};
