@@ -723,6 +723,24 @@ setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
     });
 
     buttons.append(open, share, copy);
+
+const isIOS =
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+if (isIOS) {
+  const download = action('Télécharger sur iPhone', () => {
+    const shortcutName = 'Loan’s Music';
+
+    window.location.href =
+      'shortcuts://run-shortcut?name=' +
+      encodeURIComponent(shortcutName) +
+      '&input=text&text=' +
+      encodeURIComponent(url);
+  });
+
+  buttons.append(download);
+}
     text.append(buttons);
     card.append(image, text);
     return card;
