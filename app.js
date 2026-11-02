@@ -7,7 +7,26 @@ try{recentIds=JSON.parse(localStorage.getItem('ml-recent')||'[]');if(!Array.isAr
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 function action(label,fn,className=''){const b=node('button',className,label);b.type='button';b.onclick=fn;return b;}
 function art(track,className='art'){const el=node('div',className);setArt(el,track);return el;}
-function setArt(el,track){const key=track?.artwork||'';if(el.dataset.artKey===key)return;el.dataset.artKey=key;el.replaceChildren();if(track?.artwork?.startsWith('data:image/') || track?.artwork === 'favorites-heart.jpg') || track?.artwork === 'favorites-heart.png'){const image=node('img');image.src=track.artwork;image.alt='';image.loading='lazy';el.append(image);}else el.textContent='♫';}
+function setArt(el, track) {
+  const key = track?.artwork || '';
+  if (el.dataset.artKey === key) return;
+
+  el.dataset.artKey = key;
+  el.replaceChildren();
+
+  if (
+    key.startsWith('data:image/') ||
+    key === 'favorites-heart.jpg'
+  ) {
+    const image = node('img');
+    image.src = key;
+    image.alt = '';
+    image.loading = 'lazy';
+    el.append(image);
+  } else {
+    el.textContent = '♫';
+  }
+}
 function albumKey(t){return JSON.stringify([displayArtist(t),t.album||'Album inconnu']);}
 function collectionTracks(){
  let values=[...tracks];
