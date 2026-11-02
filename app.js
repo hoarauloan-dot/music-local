@@ -75,7 +75,35 @@ render=()=>{
  }else{
   $('count').textContent=visible.length+' titres';
   if(visible.length)controls.append(action('▶ Lire',()=>startQueue(visible[0].id,visible.map(x=>x.id)),'primary'),action('⇄ Mélanger',()=>{shuffle=true;startQueue(visible[randomIndex(visible.length)].id,visible.map(x=>x.id));}));
-  for(const t of visible)list.append(trackRow(t,visible));
+  if(isHome && view === 'titles'){
+  const recentTracks = [...visible].sort(
+    (a, b) => (b.importedAt || 0) - (a.importedAt || 0)
+  );
+
+  $('section-title').textContent = 'Derniers ajouts';
+  $('sort').hidden = true;
+
+  for(const t of recentTracks.slice(0, 5)){
+    list.append(trackRow(t, recentTracks));
+  }
+
+  if(recentTracks.length > 5){
+    const more = node('details');
+    more.append(
+      node('summary', '', 'Autres titres (' + (recentTracks.length - 5) + ')')
+    );
+
+    for(const t of recentTracks.slice(5)){
+      more.append(trackRow(t, recentTracks));
+    }
+
+    list.append(more);
+  }
+}else{
+  for(const t of visible){
+    list.append(trackRow(t, visible));
+  }
+}
   if(!visible.length)list.append(node('p','empty',detail?.kind==='playlist'?'Touche « Ajouter » pour choisir tes sons.':tracks.length?'Aucun résultat.':'Importe tes premiers morceaux.'));
  }
  if(detail?.kind==='playlist'||detail?.kind==='all'){
