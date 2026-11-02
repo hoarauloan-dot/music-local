@@ -250,7 +250,7 @@ $('open-queue').onclick=()=>$('queue-dialog').showModal();
 $('close-queue').onclick=()=>$('queue-dialog').close();
 const baseSetTab=setTab;
 setTab=value=>{baseSetTab(value);window.scrollTo(0,0);};
-(async()=>{try{db=await openDB();tracks=await read('tracks');playlists=await read('playlists');render();await restoreSession();}catch(error){$('import').disabled=true;notify('Stockage local indisponible : '+error.message,true);}setupOffline();})();
+(async()=>{try{db=await openDB();tracks=await read('tracks');playlists=await read('playlists');render();window.loanLibraryReady = true;await restoreSession();}catch(error){$('import').disabled=true;notify('Stockage local indisponible : '+error.message,true);}setupOffline();})();
 // Correctif 0.4.1
 (() => {
   const main = document.querySelector('main');
