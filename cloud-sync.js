@@ -9,10 +9,10 @@
   const MAX = 30 * 1024 * 1024;
   let config = null, busy = false;
   try { config = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
-  const box = document.createElement('section');
+  const box = document.createElement('details');
   box.id = 'loan-cloud';
   box.style.cssText = 'margin:16px 0;padding:16px;border:1px solid #444;border-radius:14px';
-  const heading = document.createElement('h3');
+  const heading = document.createElement('summary');
   heading.textContent = 'Import automatique iPhone';
   const status = document.createElement('p');
   status.className = 'hint';
@@ -49,7 +49,7 @@
   const disconnect = document.createElement('button');
   disconnect.type = 'button'; disconnect.textContent = 'Déconnecter le relais';
   box.append(heading, status, check, disconnect, details);
-  panel.prepend(box);
+  panel.append(box);
   if (config) {
     url.value = config.url || ''; key.value = config.key || ''; email.value = config.email || '';
   }
