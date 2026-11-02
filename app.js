@@ -68,7 +68,7 @@ render=()=>{
   homeCard(
     'Favoris',
     tracks.filter(t => t.favorite).length + ' titres',
-    {artwork: 'favorites-heart.png'},
+    {artwork: 'favorites-heart.jpg'},
     () => setTab('favorites')
   )
 );
