@@ -27,11 +27,103 @@ function setArt(el, track) {
     el.textContent = '♫';
   }
 }
-function albumKey(t){return JSON.stringify([displayArtist(t),t.album||'Album inconnu']);}
+function artistKey(name) {
+  return normalizeSearch(name).replace(/\s+/g, '');
+}
+
+function trackArtists(t) {
+  const aliases = {
+    ndji: "N’Dji",
+    smith: 'SMITH'
+  };
+
+  const parts = displayArtist(t)
+    .replace(/\s*[(\[]\s*(?=(?:ft|feat|featuring)\b)/gi, ' ')
+    .split(/\s*\b(?:featuring|feat|ft)\b\.?\s*|\s*[,;]\s*/gi);
+
+  const unique = new Map();
+
+  for (const part of parts) {
+    const name = part.replace(/[)\]]+\s*$/g, '').trim();
+    const key = artistKey(name);
+
+    if (key && !unique.has(key)) {
+      unique.set(key, {
+        key,
+        name: aliases[key] || name
+      });
+    }
+  }
+
+  return [...unique.values()];
+}
+
+function albumName(t) {
+  const name = String(t.album || '').trim();
+
+  const missing = [
+    '',
+    'sans album',
+    'album inconnu',
+    'unknown',
+    'unknown album'
+  ];
+
+  return missing.includes(normalizeSearch(name)) ? '' : name;
+}
+
+function albumKey(t) {
+  const name = albumName(t);
+  if (!name) return null;
+
+  const owner = t.albumArtist
+    ? artistKey(t.albumArtist)
+    : trackArtists(t)[0]?.key || '';
+
+  return JSON.stringify([owner, normalizeSearch(name)]);
+}
+
+function musicGroups(view) {
+  const groups = new Map();
+
+  for (const t of tracks) {
+    const entries = view === 'artists'
+      ? trackArtists(t)
+      : albumName(t)
+        ? [{key: albumKey(t), name: albumName(t)}]
+        : [];
+
+    for (const entry of entries) {
+      if (!groups.has(entry.key)) {
+        groups.set(entry.key, {
+          name: entry.name,
+          items: []
+        });
+      }
+
+      const group = groups.get(entry.key);
+
+      if (!group.items.some(item => item.id === t.id)) {
+        group.items.push(t);
+      }
+    }
+  }
+
+  return [...groups].sort((a, b) =>
+    a[1].name.localeCompare(b[1].name, 'fr', {
+      sensitivity: 'base',
+      numeric: true
+    })
+  );
+}
 function collectionTracks(){
  let values=[...tracks];
  if(tab==='favorites')values=values.filter(t=>t.favorite);
- if(detail?.kind==='artist')values=values.filter(t=>displayArtist(t)===detail.key);
+ if(detail?.kind === 'artist') {
+  values = values.filter(t =>
+    trackArtists(t).some(artist => artist.key === detail.key)
+  );
+}
  if(detail?.kind==='album')values=values.filter(t=>albumKey(t)===detail.key);
  if(detail?.kind==='playlist'){const p=playlists.find(x=>x.id===detail.key);values=(p?.trackIds||[]).map(trackById).filter(Boolean);}
  const query=normalizeSearch($('search').value);values=values.filter(t=>matchesSearch(t, $('search').value));
@@ -95,10 +187,41 @@ render=()=>{
   for(const p of playlists)grid.append(homeCard(p.name,p.trackIds.filter(trackById).length+' titres',playlistCover(p),()=>openDetail('playlist',p.id,p.name)));
   list.append(grid);$('count').textContent=playlists.length+' playlists';
  }else if(grouped){
-  const groups=new Map();for(const t of tracks){const key=view==='artists'?displayArtist(t):albumKey(t);if(!groups.has(key))groups.set(key,{name:view==='artists'?displayArtist(t):t.album||'Sans album',items:[]});groups.get(key).items.push(t);}
-  const grid=node('div','group-grid');for(const [key,g] of groups){grid.append(homeCard(g.name,g.items.length+' titres',g.items.find(t=>t.artwork),()=>openDetail(view==='artists'?'artist':'album',key,g.name)));}
-  list.append(grid);$('count').textContent=groups.size+' '+(view==='artists'?'artistes':'albums');
-  if(!groups.size)list.append(node('p','empty','Importe tes premiers morceaux.'));
+    const groups = musicGroups(view);
+  const grid = node('div', 'group-grid');
+
+  for (const [key, g] of groups) {
+    grid.append(
+      homeCard(
+        g.name,
+        g.items.length + ' titres',
+        g.items.find(t => t.artwork),
+        () => openDetail(
+          view === 'artists' ? 'artist' : 'album',
+          key,
+          g.name
+        )
+      )
+    );
+  }
+
+  list.append(grid);
+
+  $('count').textContent =
+    groups.length + ' ' +
+    (view === 'artists' ? 'artistes' : 'albums');
+
+  if (!groups.length) {
+    list.append(
+      node(
+        'p',
+        'empty',
+        view === 'albums'
+          ? 'Aucun album renseigné. Tes morceaux restent dans Titres et Artistes.'
+          : 'Importe tes premiers morceaux.'
+      )
+    );
+  }
  }else{
   $('count').textContent=visible.length+' titres';
   if(visible.length)controls.append(action('▶ Lire',()=>startQueue(visible[0].id,visible.map(x=>x.id)),'primary'),action('⇄ Mélanger',()=>{shuffle=true;startQueue(visible[randomIndex(visible.length)].id,visible.map(x=>x.id));}));
@@ -542,19 +665,50 @@ if(manualIndex >= 0){
   audio.addEventListener('error', cancelPending);
 
   if (navigator.mediaSession) {
-    for (const [name, handler] of Object.entries({
-      play: playCurrent,
-      pause: pauseCurrent,
-      nexttrack: () => next(),
-      previoustrack: () => previous(),
-      stop: () => {
-        const button = $('mini-stop');
-        if (button) button.click();
-        else { stop(); render(); saveSession(); }
+    function configureMediaControls() {
+      const handlers = {
+        seekbackward: null,
+        seekforward: null,
+
+        play: playCurrent,
+        pause: pauseCurrent,
+
+        nexttrack: () => next(),
+
+        previoustrack: () => {
+          const index = queue.indexOf(currentId);
+
+          if (index > 0) {
+            selectTrack(queue[index - 1]);
+          } else {
+            audio.currentTime = 0;
+            updatePosition();
+          }
+        },
+
+        stop: () => {
+          const button = $('mini-stop');
+
+          if (button) {
+            button.click();
+          } else {
+            stop();
+            render();
+            saveSession();
+          }
+        }
+      };
+
+      for (const [name, handler] of Object.entries(handlers)) {
+        try {
+          navigator.mediaSession.setActionHandler(name, handler);
+        } catch {}
       }
-    })) {
-      try { navigator.mediaSession.setActionHandler(name, handler); } catch {}
     }
+
+    configureMediaControls();
+    audio.addEventListener('loadedmetadata', configureMediaControls);
+    audio.addEventListener('playing', configureMediaControls);
   }
   $('settings-dialog').append(node('p', 'hint', 'Correctif Bluetooth 0.4.2 actif'));
   // Aucune relance automatique au déverrouillage ou au retour dans l’app.
